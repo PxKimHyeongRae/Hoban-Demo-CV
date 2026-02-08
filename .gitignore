@@ -1,0 +1,34 @@
+# Large dataset directories
+dataset/
+datasets_v6/
+datasets_v7/
+datasets_v8/
+datasets_v9/
+datasets_v10/
+
+# Training output directories
+hoban_v9/
+hoban_v10/
+runs/
+
+# Large zip files
+*.zip
+
+# Model weights
+*.pt
+
+# OMC state
+.omc/
+
+# Autolabel check outputs
+autolabel_check/
+
+# Windows junk
+nul
+Thumbs.db
+desktop.ini
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
