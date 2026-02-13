@@ -1,0 +1,9 @@
+path: datasets_v7
+train: train/images
+val: valid/images
+nc: 4
+names:
+  0: person_with_helmet
+  1: person_without_helmet
+  2: person
+  3: fallen

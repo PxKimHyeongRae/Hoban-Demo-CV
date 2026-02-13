@@ -1,34 +1,42 @@
-# Large dataset directories
-dataset/
-datasets_v6/
-datasets_v7/
-datasets_v8/
-datasets_v9/
-datasets_v10/
+# ============================================
+# 대용량 데이터/모델 (git 추적 제외)
+# ============================================
 
-# Training output directories
-hoban_v9/
-hoban_v10/
+# 데이터셋 디렉토리
+dataset_v11/
+datasets/
+datasets_*/
+
+# 학습 결과 디렉토리
+hoban_*/
 runs/
 
-# Large zip files
-*.zip
+# CCTV 스냅샷/pseudo-label
+snapshot_detect/
+cvat_export/
 
-# Model weights
+# 대용량 파일
+*.zip
 *.pt
 
-# OMC state
-.omc/
-
-# Autolabel check outputs
-autolabel_check/
-
-# Windows junk
-nul
-Thumbs.db
-desktop.ini
+# ============================================
+# 시스템/도구
+# ============================================
 
 # Python
 __pycache__/
 *.pyc
 *.pyo
+
+# OMC state
+.omc/
+
+# Windows
+nul
+Thumbs.db
+desktop.ini
+
+# IDE
+.idea/
+.vscode/
+*.swp
