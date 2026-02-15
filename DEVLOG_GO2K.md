@@ -181,17 +181,66 @@ SAHI 추론 파이프라인 최적화 및 파인튜닝 모델 비교 실험을 �
 |----------|------|
 | `train_go2k_finetune.py` | go2k만으로 파인튜닝 (SGD/AdamW) |
 | `train_go2k_v2.py` | v13 서브샘플 + go2k 오버샘플 학습 |
+| `train_go2k_v3.py` | 타일 학습 + 1280px + copy_paste |
 | `detect_go2k_sahi.py` | SAHI 추론 (최적 설정 반영) |
+| `detect_captures_gated.py` | captures SAHI+Gate pseudo-labeling |
+| `dedup_captures.py` | captures 프리즈 중복 제거 |
 | `eval_go2k_sahi.py` | go500 모델 SAHI 평가 |
 | `eval_go2k_v2.py` | go2k_v2 모델 SAHI 평가 |
-| `eval_go2k_conf_sweep.py` | conf 임계값 sweep |
-| `eval_go2k_sahi_sweep.py` | SAHI 후처리 파라미터 sweep |
+| `eval_fullimage_gate.py` | Full-Image Gate 효과 측정 |
+| `eval_gate_finetune.py` | Gate 파라미터 정밀 튜닝 (48 조합) |
+| `prepare_cvat_all.py` | go2k+captures CVAT 패키징 |
 
 ---
 
-## 7. 다음 단계
+## 7. Full-Image Gate (FP 억제)
 
-1. **go2k 수동 라벨링 확장** — 672장 → 더 많은 CCTV 데이터 라벨링으로 모델 정확도 향상
-2. **video_indoor SAHI 실시간 적용** — N프레임마다 SAHI 또는 비동기 SAHI 방식
-3. **conf 동적 조정** — 사용 목적(안전 모니터링 vs 통계 집계)에 따라 conf 분리 운용
-4. **FP 패턴 분석** — 반복 오탐 위치/패턴 식별 후 negative sample 학습 데이터 추가
+SAHI FP 문제 해결을 위해 풀이미지 추론을 게이트로 사용하는 기법 개발.
+
+### 방법
+1. 풀이미지 640px 추론 (conf=0.20) → 대략적 사람 위치 후보
+2. SAHI 타일 추론 → 정밀 탐지
+3. SAHI 결과 중 풀이미지 후보 중심 40px 반경 내만 채택
+
+### 효과 (go2k_manual 604장 기준)
+
+| 설정 | P | R | F1 | FP |
+|---|---|---|---|---|
+| SAHI only | 0.725 | 0.906 | 0.804 | 575 |
+| **+gate (conf=0.20, r=40)** | **0.867** | **0.893** | **0.880** | **231** |
+
+- F1 +7.6%p, FP 60% 감소
+- pseudo-label 생성에만 적용 (실시간 추론은 SAHI only)
+
+스크립트: `eval_fullimage_gate.py`, `eval_gate_finetune.py`
+전략 문서: `GATE_STRATEGY.md`
+
+---
+
+## 8. Pseudo-Label 파이프라인 (captures 3K)
+
+### 데이터 수집
+- 소스: `/home/lay/video_indoor/static/captures/cam1,cam2/`
+- 원본 프리즈 중복 제거: 43,056장 (38.8GB) 삭제 (`dedup_captures.py`)
+- 선별: 전체 시간대, 10초 간격, go2k 타임스탬프 제외, cam1+cam2 interleave
+
+### 탐지 결과
+- 3,000장 탐지 (cam1: 1,219, cam2: 1,781)
+- 게이트 전 6,233 bbox → 게이트 후 5,058 bbox (19% FP 필터)
+- 스크립트: `detect_captures_gated.py`
+
+### CVAT 패키징
+- `/home/lay/hoban/datasets/cvat_all/` (3개 task, 3.07GB)
+- Part 1: 1,202장 (go2k 604 + captures 598)
+- Part 2: 1,202장 (captures)
+- Part 3: 1,200장 (captures)
+- 스크립트: `prepare_cvat_all.py`
+
+---
+
+## 9. 다음 단계
+
+1. **CVAT 검수** — 3,604장 pseudo-label 수동 검토/수정
+2. **go2k_v3 학습** — 타일 학습 + 1280px + copy_paste (`train_go2k_v3.py`)
+3. **검수 완료 후 go2k_v4** — 검수된 라벨 포함하여 재학습
+4. **video_indoor SAHI 실시간 적용** — 모델 품질 향상 후 게이트 없이 운용

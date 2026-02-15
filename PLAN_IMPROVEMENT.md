@@ -74,13 +74,17 @@
 ## 실행 계획
 
 ```
-Phase 1 (즉시)
-  ├── go2k_manual 672장 → 640x640 타일 분할 학습 데이터 구축
-  ├── imgsz=1280, batch=4, copy_paste=0.15 적용
-  └── go2k_v3 학습 시작
+Phase 1 (완료)
+  ├── [완료] go2k_manual 604장 → 640x640 타일 분할 학습 데이터 구축
+  ├── [완료] imgsz=1280, batch=4, copy_paste=0.15 적용 (train_go2k_v3.py)
+  ├── [완료] Full-Image Gate 개발 (FP 60% 감소, F1 0.804→0.880)
+  ├── [완료] captures 프리즈 중복 제거 (43K장/38.8GB)
+  ├── [완료] captures 3K gated pseudo-labeling (cam1:1219 + cam2:1781)
+  ├── [완료] CVAT 패키징 (3,604장 = go2k 604 + captures 3K, 3개 task)
+  └── [대기] go2k_v3 학습 시작
 
-Phase 2 (병렬)
-  ├── CVAT pseudo-label 검수 (3,072장, 7배치)
+Phase 2 (진행 중)
+  ├── [진행] CVAT pseudo-label 검수 (3,604장, 3개 task)
   ├── hard example mining으로 추가 라벨링 대상 선정
   └── 검수 완료분 추가하여 go2k_v4 학습
 
