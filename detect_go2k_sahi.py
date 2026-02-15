@@ -2,11 +2,12 @@
 """
 go2k_manual 데이터에 대해 SAHI 추론
 
-최적 조건 (sweep 결과):
+최적 조건 (comprehensive eval 결과):
   - 모델: go2k_v2 best.pt
-  - conf: 0.50
+  - conf: 0.55
   - SAHI: 1280x720 타일, overlap 0.15, NMS / match_threshold=0.4 / IOS
-  - F1=0.912, P=0.884, R=0.942
+  - perform_standard_pred=True (풀이미지+타일 결합)
+  - F1=0.914, P=0.893, R=0.935
 
 실행: python detect_go2k_sahi.py
 GPU: python detect_go2k_sahi.py --device 0
@@ -20,7 +21,7 @@ import argparse
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--device", default="0", help="cpu 또는 0")
-parser.add_argument("--conf", type=float, default=0.50)
+parser.add_argument("--conf", type=float, default=0.55)
 parser.add_argument("--model", default="/home/lay/hoban/hoban_go2k_v2/weights/best.pt")
 args = parser.parse_args()
 
@@ -54,6 +55,7 @@ for i, fname in enumerate(images):
         postprocess_type="NMS",
         postprocess_match_threshold=0.4,
         postprocess_match_metric="IOS",
+        perform_standard_pred=True,
     )
 
     preds = result.object_prediction_list
