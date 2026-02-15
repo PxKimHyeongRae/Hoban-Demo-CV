@@ -5,8 +5,8 @@ go2k_manual 데이터에 대해 SAHI 추론
 최적 조건 (sweep 결과):
   - 모델: go2k_v2 best.pt
   - conf: 0.50
-  - SAHI: NMS / match_threshold=0.4 / IOS
-  - F1=0.804, P=0.725, R=0.903
+  - SAHI: 1280x720 타일, overlap 0.15, NMS / match_threshold=0.4 / IOS
+  - F1=0.912, P=0.884, R=0.942
 
 실행: python detect_go2k_sahi.py
 GPU: python detect_go2k_sahi.py --device 0
@@ -47,10 +47,10 @@ for i, fname in enumerate(images):
     result = get_sliced_prediction(
         os.path.join(img_dir, fname),
         model,
-        slice_height=640,
-        slice_width=640,
-        overlap_height_ratio=0.2,
-        overlap_width_ratio=0.2,
+        slice_height=720,
+        slice_width=1280,
+        overlap_height_ratio=0.15,
+        overlap_width_ratio=0.15,
         postprocess_type="NMS",
         postprocess_match_threshold=0.4,
         postprocess_match_metric="IOS",

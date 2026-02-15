@@ -137,19 +137,21 @@ SAHI 추론 파이프라인 최적화 및 파인튜닝 모델 비교 실험을 �
 
 ## 4. 최적 설정 (현재 채택)
 
-| 항목 | 값 |
-|------|-----|
-| 모델 | `hoban_go2k_v2/weights/best.pt` |
-| conf | **0.50** |
-| SAHI slice | 640×640, overlap 0.2 |
-| postprocess_type | **NMS** |
-| postprocess_match_threshold | **0.4** |
-| postprocess_match_metric | **IOS** |
-| **Precision** | **0.725** |
-| **Recall** | **0.903** |
-| **F1** | **0.804** |
+| 항목 | 이전 (640x640) | **현재 (1280x720)** |
+|------|----------------|---------------------|
+| 모델 | `hoban_go2k_v2/weights/best.pt` | 동일 |
+| conf | 0.50 | **0.50** |
+| SAHI slice | 640×640, overlap 0.2 | **1280×720, overlap 0.15** |
+| postprocess_type | NMS | **NMS** |
+| postprocess_match_threshold | 0.4 | **0.4** |
+| postprocess_match_metric | IOS | **IOS** |
+| Precision | 0.725 | **0.884 (+15.9%p)** |
+| Recall | 0.903 | **0.942 (+3.9%p)** |
+| F1 | 0.804 | **0.912 (+10.8%p)** |
+| FP | 575 | **208 (-64%)** |
 
-스크립트: `detect_go2k_sahi.py` (최적 설정 반영 완료)
+타일 크기 변경만으로 F1 +10.8%p 개선. 상세: `TILE_SIZE_EVAL.md`
+스크립트: `detect_go2k_sahi.py` (1280x720 반영 완료)
 
 ---
 
@@ -189,6 +191,7 @@ SAHI 추론 파이프라인 최적화 및 파인튜닝 모델 비교 실험을 �
 | `eval_go2k_v2.py` | go2k_v2 모델 SAHI 평가 |
 | `eval_fullimage_gate.py` | Full-Image Gate 효과 측정 |
 | `eval_gate_finetune.py` | Gate 파라미터 정밀 튜닝 (48 조합) |
+| `eval_tile_size.py` | SAHI 타일 크기별 성능 비교 (640~1920) |
 | `prepare_cvat_all.py` | go2k+captures CVAT 패키징 |
 
 ---
