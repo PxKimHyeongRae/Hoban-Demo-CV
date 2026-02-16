@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""v4 모델 SAHI 평가 (go2k_manual GT 대비, v2 최적 설정)"""
+"""v5 모델 SAHI 평가 (go2k_manual GT 대비, v2 최적 설정)"""
 import os, time
 from sahi import AutoDetectionModel
 from sahi.predict import get_sliced_prediction
@@ -7,7 +7,7 @@ from PIL import Image
 
 IMG_DIR = "/home/lay/hoban/datasets/go2k_manual/images"
 LBL_DIR = "/home/lay/hoban/datasets/go2k_manual/labels"
-MODEL = "/home/lay/hoban/hoban_go2k_v4/weights/best.pt"
+MODEL = "/home/lay/hoban/hoban_go2k_v5/weights/best.pt"
 
 
 def compute_iou(b1, b2):
@@ -79,7 +79,7 @@ CONFS = [0.25, 0.30, 0.35, 0.40, 0.45, 0.50, 0.55, 0.60]
 
 # 1) SAHI + perform_standard_pred (v2 최적 설정)
 print("=" * 80)
-print("v4 SAHI 1280x720 + perform_standard_pred")
+print("v5 SAHI 1280x720 + perform_standard_pred")
 print("=" * 80)
 t0 = time.time()
 preds_std = {}
