@@ -20,13 +20,15 @@ from ultralytics import YOLO
 from PIL import Image
 
 # ── 설정 ──
-IMG_DIR = "/home/lay/hoban/datasets/go2k_manual/images"
-LBL_DIR = "/home/lay/hoban/datasets/go2k_manual/labels"
+IMG_DIR = "/home/lay/hoban/datasets/3k_finetune/val/images"
+LBL_DIR = "/home/lay/hoban/datasets/3k_finetune/val/labels"
 
 MODELS = {
-    "v2": "/home/lay/hoban/hoban_go2k_v2/weights/best.pt",
-    "v3": "/home/lay/hoban/hoban_go2k_v3/weights/best.pt",
-    "v13": "/home/lay/hoban/hoban_v13_stage2/weights/best.pt",
+    "v2": "/home/lay/hoban/hoban_go2k_v2/weights/best.pt",      # 주의: 3k val에 82장 누출
+    "v3": "/home/lay/hoban/hoban_go2k_v3/weights/best.pt",      # 깨끗 (0 overlap)
+    "v16": "/home/lay/hoban/hoban_go3k_v16_640/weights/best.pt", # 깨끗
+    "v17": "/home/lay/hoban/hoban_go3k_v17/weights/best.pt",     # 깨끗 (학습 완료 후)
+    "v13": "/home/lay/hoban/hoban_v13_stage2/weights/best.pt",   # 깨끗
 }
 
 CLASS_NAMES = {0: "helmet_on", 1: "helmet_off"}
@@ -266,12 +268,16 @@ print_header("Phase 1: 모델 교체 + conf sweep (1280x720, overlap=0.15)")
 CONF_SWEEP = [0.30, 0.35, 0.40, 0.45, 0.50, 0.55, 0.60]
 model_preds = {}  # 캐시
 
-for model_name, model_path in [("v2", MODELS["v2"]), ("v3", MODELS["v3"])]:
+MODEL_IMGSZ = {"v2": None, "v3": 1280, "v16": None, "v17": 1280, "v13": None}
+PHASE1_MODELS = ["v16", "v3", "v17", "v2"]  # v2는 82장 누출 주의
+
+for model_name in PHASE1_MODELS:
+    model_path = MODELS[model_name]
     if not os.path.exists(model_path):
-        print(f"  [{model_name}] 모델 없음: {model_path}")
+        print(f"  [{model_name}] 모델 없음 (스킵): {model_path}")
         continue
 
-    img_size = 1280 if model_name == "v3" else None
+    img_size = MODEL_IMGSZ.get(model_name)
     print(f"\n  [{model_name}] 추론 중 (conf=0.05, image_size={img_size})...", end=" ", flush=True)
     t0 = time.time()
     preds = run_sahi(model_path, images, tile_w=1280, tile_h=720, overlap=0.15,
@@ -402,18 +408,8 @@ if p4_best:
 # ══════════════════════════════════════════════════════════════════
 print_header("Phase 5: 모델 앙상블")
 
-# v2 + v3 앙상블
-if "v2" in model_preds and "v3" in model_preds:
-    print("\n  v2 + v3 앙상블 (NMS)...")
-    ens_v2v3 = ensemble_nms([model_preds["v2"], model_preds["v3"]], iou_thresh=0.5)
-    for conf in CONF_SWEEP:
-        n_pred, tp, fp, fn, prec, rec, f1 = evaluate(all_gt, ens_v2v3, conf)
-        label = f"v2+v3 NMS conf={conf:.2f}"
-        print_row(label, n_pred, tp, fp, fn, prec, rec, f1)
-        all_results.append(("P5", label, n_pred, tp, fp, fn, prec, rec, f1))
-
-# v3 + v13 앙상블
-if os.path.exists(MODELS["v13"]) and "v3" in model_preds:
+# v13 추론 (앙상블용)
+if os.path.exists(MODELS["v13"]) and "v13" not in model_preds:
     print(f"\n  v13 추론 중...", end=" ", flush=True)
     t0 = time.time()
     v13_preds = run_sahi(MODELS["v13"], images, tile_w=1280, tile_h=720,
@@ -422,22 +418,33 @@ if os.path.exists(MODELS["v13"]) and "v3" in model_preds:
     model_preds["v13"] = v13_preds
     print(f"완료 ({elapsed:.0f}s)")
 
-    ens_v3v13 = ensemble_nms([model_preds["v3"], v13_preds], iou_thresh=0.5)
+# 가용 모델로 2-모델 앙상블 조합 테스트
+from itertools import combinations
+available = [k for k in model_preds]
+print(f"\n  가용 모델: {available}")
+print(f"  (주의: v2는 3k val에 82장 누출)")
+
+for combo in combinations(available, 2):
+    combo_name = "+".join(combo)
+    print(f"\n  {combo_name} 앙상블 (NMS)...")
+    ens = ensemble_nms([model_preds[m] for m in combo], iou_thresh=0.5)
     for conf in CONF_SWEEP:
-        n_pred, tp, fp, fn, prec, rec, f1 = evaluate(all_gt, ens_v3v13, conf)
-        label = f"v3+v13 NMS conf={conf:.2f}"
+        n_pred, tp, fp, fn, prec, rec, f1 = evaluate(all_gt, ens, conf)
+        label = f"{combo_name} NMS conf={conf:.2f}"
         print_row(label, n_pred, tp, fp, fn, prec, rec, f1)
         all_results.append(("P5", label, n_pred, tp, fp, fn, prec, rec, f1))
 
-# v2 + v3 + v13 앙상블
-if all(k in model_preds for k in ["v2", "v3", "v13"]):
-    print("\n  v2+v3+v13 앙상블 (NMS)...")
-    ens_all = ensemble_nms([model_preds["v2"], model_preds["v3"], model_preds["v13"]], iou_thresh=0.5)
-    for conf in CONF_SWEEP:
-        n_pred, tp, fp, fn, prec, rec, f1 = evaluate(all_gt, ens_all, conf)
-        label = f"v2+v3+v13 NMS conf={conf:.2f}"
-        print_row(label, n_pred, tp, fp, fn, prec, rec, f1)
-        all_results.append(("P5", label, n_pred, tp, fp, fn, prec, rec, f1))
+# 3-모델 앙상블 (가용 모델 3개 이상일 때)
+if len(available) >= 3:
+    for combo in combinations(available, 3):
+        combo_name = "+".join(combo)
+        print(f"\n  {combo_name} 앙상블 (NMS)...")
+        ens = ensemble_nms([model_preds[m] for m in combo], iou_thresh=0.5)
+        for conf in CONF_SWEEP:
+            n_pred, tp, fp, fn, prec, rec, f1 = evaluate(all_gt, ens, conf)
+            label = f"{combo_name} NMS conf={conf:.2f}"
+            print_row(label, n_pred, tp, fp, fn, prec, rec, f1)
+            all_results.append(("P5", label, n_pred, tp, fp, fn, prec, rec, f1))
 
 p5_best = max([r for r in all_results if r[0] == "P5"], key=lambda x: x[8], default=None)
 if p5_best:
