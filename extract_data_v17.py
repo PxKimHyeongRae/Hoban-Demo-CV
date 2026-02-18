@@ -1,28 +1,18 @@
 #!/usr/bin/env python3
-"""v17 데이터 수집: helmet_off 추출 + hard negative 마이닝 (v3 - 실서비스 파이프라인)
+"""v17 데이터 수집 (v5 - 멀티프로세스 GPU 병렬 추론)
 
-실서비스(video_indoor)와 동일한 L2+full 파이프라인 사용:
-  - 1280x1280 2타일 배치 슬라이스 + full-image 1280px 추론
-  - cross_slice_nms + cross_class_nms
-  - SAHI 사용 안 함
-
-Mode 1 (helmet_off): captures에서 helmet_off 탐지 이미지 수집
-  - 주간(07-17) 이미지만 대상
-  - v17 L2+full 추론 → 후처리 → helmet_off 있는 이미지 저장
-  - 3k train/val 제외, burst 스킵, 3분 간격 필터
-
-Mode 2 (hard_neg): 사람 없는 배경에서 v17이 오탐하는 이미지 수집
-  - 주간(07-17) 이미지만 대상
-  - COCO person detector (yolo26m.pt)로 "사람 없음" 확인
-  - v17 L2+full에서 탐지 있음 → 오탐 = hard negative
-  - 빈 라벨(.txt)과 함께 저장
+실서비스(video_indoor)와 동일한 L2+full 파이프라인 + 멀티프로세스 병렬:
+  - N개 워커 프로세스가 각각 모델 로드 → 후보 분할 처리
+  - 단일 GPU를 N개 프로세스가 공유 (CUDA 드라이버가 스케줄링)
+  - RTX 4080 16GB: helmet_off 4워커, hard_neg 2워커
 
 사용법:
-  python extract_data_v17.py                    # 둘 다 순차 실행
-  python extract_data_v17.py --mode helmet_off  # helmet_off만
-  python extract_data_v17.py --mode hard_neg    # hard negative만
-  python extract_data_v17.py --server           # 서버에서 실행
-  python extract_data_v17.py --clear            # 이전 결과 삭제 후 재수집
+  python extract_data_v17.py --server                       # 서버 (자동 워커 수)
+  python extract_data_v17.py --server --workers 4            # 워커 수 수동
+  python extract_data_v17.py --server --clear                # 이전 결과 삭제 후 재수집
+  python extract_data_v17.py --server --mode helmet_off      # helmet_off만
+  python extract_data_v17.py --server --mode hard_neg        # hard negative만
+  python extract_data_v17.py                                 # 로컬 PC (자동)
 """
 import os
 import sys
@@ -34,6 +24,10 @@ import shutil
 import numpy as np
 import cv2
 from collections import defaultdict
+
+# stdout 버퍼링 방지 (백그라운드 실행 시 필수)
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(line_buffering=True)
 
 logging.getLogger("ultralytics").setLevel(logging.WARNING)
 
@@ -121,94 +115,134 @@ def _cross_class_nms(detections, iou_threshold=0.3):
     return keep
 
 
-def _batch_sliced_predict(frame, yolo_model, slice_size=1280, overlap=0.1,
-                           conf=0.15, device="cuda:0"):
-    """video_indoor 동일: 배치 슬라이스 추론"""
-    import torch
-    img_h, img_w = frame.shape[:2]
-    slices = _calc_slices(img_h, img_w, slice_size, slice_size, overlap, overlap)
+# ============================================================================
+#  GPU 배치 추론
+# ============================================================================
 
-    batch_list, metas = [], []
-    for (sx, sy, ex, ey) in slices:
-        crop = frame[sy:ey, sx:ex]
-        lb, scale, dw, dh = _letterbox(crop, slice_size)
-        t = lb[:, :, ::-1].transpose(2, 0, 1).astype(np.float32) / 255.0
-        batch_list.append(t)
-        metas.append((sx, sy, ex-sx, ey-sy, scale, dw, dh))
-
-    batch_np = np.ascontiguousarray(np.stack(batch_list))
-    batch_tensor = torch.from_numpy(batch_np)
-    if "cuda" in device:
-        batch_tensor = batch_tensor.half().cuda()
-
-    with torch.no_grad():
-        raw_preds = yolo_model.model(batch_tensor)
-    preds_tensor = raw_preds[0]
-
-    all_dets = []
-    for i, (sx, sy, sw, sh, scale, dw, dh) in enumerate(metas):
-        preds = preds_tensor[i]
-        valid = preds[preds[:, 4] >= conf]
-        if len(valid) == 0:
-            continue
-        for det in valid:
-            x1, y1, x2, y2 = det[:4].cpu().numpy()
-            conf_val = float(det[4])
-            cls_id = int(det[5])
-            x1 = (x1 - dw) / scale + sx
-            y1 = (y1 - dh) / scale + sy
-            x2 = (x2 - dw) / scale + sx
-            y2 = (y2 - dh) / scale + sy
-            x1 = max(0, min(x1, img_w))
-            y1 = max(0, min(y1, img_h))
-            x2 = max(0, min(x2, img_w))
-            y2 = max(0, min(y2, img_h))
-            if x2 > x1 and y2 > y1:
-                all_dets.append((cls_id, conf_val, x1, y1, x2, y2))
-
-    return _cross_slice_nms(all_dets, 0.5)
-
-
-def _full_image_predict(frame, yolo_model, conf=0.15, device="cuda:0"):
-    """video_indoor 동일: 전체 이미지 추론"""
-    import torch
-    img_h, img_w = frame.shape[:2]
-    lb, scale, dw, dh = _letterbox(frame, 1280)
-    t = lb[:, :, ::-1].transpose(2, 0, 1).astype(np.float32) / 255.0
-    batch_tensor = torch.from_numpy(t[np.newaxis])
-    if "cuda" in device:
-        batch_tensor = batch_tensor.half().cuda()
-
-    with torch.no_grad():
-        raw_preds = yolo_model.model(batch_tensor)
-    preds_tensor = raw_preds[0][0]
-    valid = preds_tensor[preds_tensor[:, 4] >= conf]
-
+def _parse_preds(preds_single, conf, img_h, img_w, scale, dw, dh,
+                 offset_x=0, offset_y=0):
+    """단일 텐서에서 탐지 결과 파싱"""
+    valid = preds_single[preds_single[:, 4] >= conf]
     dets = []
     for det in valid:
         x1, y1, x2, y2 = det[:4].cpu().numpy()
         conf_val = float(det[4])
         cls_id = int(det[5])
-        x1 = (x1 - dw) / scale
-        y1 = (y1 - dh) / scale
-        x2 = (x2 - dw) / scale
-        y2 = (y2 - dh) / scale
-        x1 = max(0, min(x1, img_w))
-        y1 = max(0, min(y1, img_h))
-        x2 = max(0, min(x2, img_w))
-        y2 = max(0, min(y2, img_h))
+        x1 = (x1 - dw) / scale + offset_x
+        y1 = (y1 - dh) / scale + offset_y
+        x2 = (x2 - dw) / scale + offset_x
+        y2 = (y2 - dh) / scale + offset_y
+        x1, y1 = max(0, min(x1, img_w)), max(0, min(y1, img_h))
+        x2, y2 = max(0, min(x2, img_w)), max(0, min(y2, img_h))
         if x2 > x1 and y2 > y1:
             dets.append((cls_id, conf_val, x1, y1, x2, y2))
     return dets
 
 
-def predict_l2_full(frame, yolo_model, conf=0.15, device="cuda:0"):
-    """L2+full 파이프라인: 슬라이스 2타일 + full-image → 병합 → NMS"""
-    slice_dets = _batch_sliced_predict(frame, yolo_model, 1280, 0.1, conf, device)
-    full_dets = _full_image_predict(frame, yolo_model, conf, device)
-    merged = _cross_slice_nms(slice_dets + full_dets, 0.5)
-    merged = _cross_class_nms(merged, 0.3)
-    return merged
+def _batch_predict_l2_full(frames, yolo_model, conf=0.15, device="cuda:0",
+                            max_gpu_batch=16):
+    """N개 프레임 L2+full 배치 추론"""
+    import torch
+    n = len(frames)
+    if n == 0:
+        return []
+
+    slice_tiles, slice_metas = [], []
+    full_tiles, full_metas = [], []
+    frame_info = []
+
+    for fi, frame in enumerate(frames):
+        if frame is None:
+            frame_info.append((0, 0))
+            continue
+        img_h, img_w = frame.shape[:2]
+        frame_info.append((img_h, img_w))
+
+        slices = _calc_slices(img_h, img_w, 1280, 1280, 0.1, 0.1)
+        for (sx, sy, ex, ey) in slices:
+            crop = frame[sy:ey, sx:ex]
+            lb, scale, dw, dh = _letterbox(crop, 1280)
+            t = lb[:, :, ::-1].transpose(2, 0, 1).astype(np.float32) / 255.0
+            slice_tiles.append(t)
+            slice_metas.append((fi, sx, sy, scale, dw, dh))
+
+        lb, scale, dw, dh = _letterbox(frame, 1280)
+        t = lb[:, :, ::-1].transpose(2, 0, 1).astype(np.float32) / 255.0
+        full_tiles.append(t)
+        full_metas.append((fi, scale, dw, dh))
+
+    per_frame_dets = [[] for _ in range(n)]
+
+    for start in range(0, len(slice_tiles), max_gpu_batch):
+        batch = slice_tiles[start:start + max_gpu_batch]
+        metas = slice_metas[start:start + max_gpu_batch]
+        batch_np = np.ascontiguousarray(np.stack(batch))
+        batch_tensor = torch.from_numpy(batch_np)
+        if "cuda" in device:
+            batch_tensor = batch_tensor.half().to(device)
+        with torch.no_grad():
+            preds = yolo_model.model(batch_tensor)[0]
+        for i, (fi, sx, sy, scale, dw, dh) in enumerate(metas):
+            img_h, img_w = frame_info[fi]
+            dets = _parse_preds(preds[i], conf, img_h, img_w, scale, dw, dh, sx, sy)
+            per_frame_dets[fi].extend(dets)
+
+    for start in range(0, len(full_tiles), max_gpu_batch):
+        batch = full_tiles[start:start + max_gpu_batch]
+        metas = full_metas[start:start + max_gpu_batch]
+        batch_np = np.ascontiguousarray(np.stack(batch))
+        batch_tensor = torch.from_numpy(batch_np)
+        if "cuda" in device:
+            batch_tensor = batch_tensor.half().to(device)
+        with torch.no_grad():
+            preds = yolo_model.model(batch_tensor)[0]
+        for i, (fi, scale, dw, dh) in enumerate(metas):
+            img_h, img_w = frame_info[fi]
+            dets = _parse_preds(preds[i], conf, img_h, img_w, scale, dw, dh)
+            per_frame_dets[fi].extend(dets)
+
+    results = []
+    for fi in range(n):
+        merged = _cross_slice_nms(per_frame_dets[fi], 0.5)
+        merged = _cross_class_nms(merged, 0.3)
+        results.append(merged)
+    return results
+
+
+def _batch_full_image_predict(frames, yolo_model, conf=0.10, device="cuda:0",
+                               max_gpu_batch=16):
+    """N개 프레임 full-image 배치 추론"""
+    import torch
+    n = len(frames)
+    per_frame_dets = [[] for _ in range(n)]
+
+    tiles, metas, frame_info = [], [], []
+    for fi, frame in enumerate(frames):
+        if frame is None:
+            frame_info.append((0, 0))
+            continue
+        img_h, img_w = frame.shape[:2]
+        frame_info.append((img_h, img_w))
+        lb, scale, dw, dh = _letterbox(frame, 1280)
+        t = lb[:, :, ::-1].transpose(2, 0, 1).astype(np.float32) / 255.0
+        tiles.append(t)
+        metas.append((fi, scale, dw, dh))
+
+    for start in range(0, len(tiles), max_gpu_batch):
+        batch = tiles[start:start + max_gpu_batch]
+        batch_metas = metas[start:start + max_gpu_batch]
+        batch_np = np.ascontiguousarray(np.stack(batch))
+        batch_tensor = torch.from_numpy(batch_np)
+        if "cuda" in device:
+            batch_tensor = batch_tensor.half().to(device)
+        with torch.no_grad():
+            preds = yolo_model.model(batch_tensor)[0]
+        for i, (fi, scale, dw, dh) in enumerate(batch_metas):
+            img_h, img_w = frame_info[fi]
+            dets = _parse_preds(preds[i], conf, img_h, img_w, scale, dw, dh)
+            per_frame_dets[fi].extend(dets)
+
+    return per_frame_dets
 
 
 # ============================================================================
@@ -216,7 +250,6 @@ def predict_l2_full(frame, yolo_model, conf=0.15, device="cuda:0"):
 # ============================================================================
 
 def parse_timestamp(fname):
-    """파일명에서 시간(초) 추출: cam1_20260212_122355_xxxxx.jpg"""
     parts = fname.split("_")
     if len(parts) < 3:
         return -1
@@ -270,7 +303,7 @@ def collect_candidates(cap_dir, cameras, used, already_found, interval=5,
     for cam in cameras:
         cam_dir = os.path.join(cap_dir, cam)
         if not os.path.isdir(cam_dir):
-            print(f"  {cam}: 디렉터리 없음 ({cam_dir})")
+            print(f"  {cam}: 디렉터리 없음 ({cam_dir})", flush=True)
             continue
         all_files = sorted(f for f in os.listdir(cam_dir)
                           if f.endswith(".jpg") and f not in used and f not in already_found)
@@ -278,10 +311,10 @@ def collect_candidates(cap_dir, cameras, used, already_found, interval=5,
             day_files = [f for f in all_files if is_daytime(f, start_hour, end_hour)]
             sampled = day_files[::interval]
             print(f"  {cam}: 전체 {len(all_files)} -> 주간({start_hour}-{end_hour}시) "
-                  f"{len(day_files)} -> 샘플 {len(sampled)}")
+                  f"{len(day_files)} -> 샘플 {len(sampled)}", flush=True)
         else:
             sampled = all_files[::interval]
-            print(f"  {cam}: 전체 {len(all_files)} -> 샘플 {len(sampled)}")
+            print(f"  {cam}: 전체 {len(all_files)} -> 샘플 {len(sampled)}", flush=True)
         candidates.extend([(cam, f) for f in sampled])
     return candidates
 
@@ -346,242 +379,361 @@ def package_cvat(out_dir, filtered, class_names, prefix=""):
             if os.path.exists(img_path):
                 zf.write(img_path, fname)
 
-    print(f"  annotations: {os.path.getsize(ann_path)/1024/1024:.1f}MB")
-    print(f"  images: {os.path.getsize(img_zip_path)/1024/1024:.1f}MB")
+    print(f"  annotations: {os.path.getsize(ann_path)/1024/1024:.1f}MB", flush=True)
+    print(f"  images: {os.path.getsize(img_zip_path)/1024/1024:.1f}MB", flush=True)
     return ann_path, img_zip_path
 
 
 # ============================================================================
-#  Mode 1: helmet_off 추출 (L2+full 파이프라인)
+#  워커 함수 (서브프로세스에서 실행)
 # ============================================================================
+
+def _helmet_off_worker(worker_id, candidates, model_path, cap_dir,
+                       img_dir, lbl_dir, device, batch_size, max_gpu_batch):
+    """helmet_off 워커: 모델 로드 → 배치 추론 → 결과 저장"""
+    from ultralytics import YOLO
+
+    model = YOLO(model_path)
+    model.fuse()
+    if "cuda" in device:
+        model.model.to(device)
+        model.model.half()
+
+    found, processed = 0, 0
+    t_start = time.time()
+
+    for ci in range(0, len(candidates), batch_size):
+        chunk = candidates[ci:ci + batch_size]
+        paths = [os.path.join(cap_dir, cam, fname) for cam, fname in chunk]
+        frames = [cv2.imread(p) for p in paths]
+
+        valid = [(i, f) for i, f in enumerate(frames) if f is not None]
+        processed += len(chunk)
+
+        if not valid:
+            continue
+
+        valid_frames = [f for _, f in valid]
+        all_dets = _batch_predict_l2_full(
+            valid_frames, model, conf=0.15,
+            device=device, max_gpu_batch=max_gpu_batch)
+
+        for vi, (ci_local, frame) in enumerate(valid):
+            cam, fname = chunk[ci_local]
+            img_h, img_w = frame.shape[:2]
+
+            preds = all_dets[vi]
+            preds = [(c, s, x1, y1, x2, y2) for c, s, x1, y1, x2, y2 in preds
+                     if s >= (0.40 if c == 0 else 0.15)]
+
+            if not any(c == 1 for c, *_ in preds):
+                continue
+
+            found += 1
+            label_lines = []
+            for cls_id, conf_val, x1, y1, x2, y2 in preds:
+                cx = ((x1 + x2) / 2) / img_w
+                cy = ((y1 + y2) / 2) / img_h
+                w = (x2 - x1) / img_w
+                h = (y2 - y1) / img_h
+                label_lines.append(f"{cls_id} {cx:.6f} {cy:.6f} {w:.6f} {h:.6f}")
+
+            shutil.copy2(os.path.join(cap_dir, cam, fname),
+                        os.path.join(img_dir, fname))
+            with open(os.path.join(lbl_dir, fname.replace(".jpg", ".txt")), "w") as f:
+                f.write("\n".join(label_lines) + "\n")
+
+        # 진행률 (200장마다)
+        if processed % 200 < batch_size:
+            elapsed = time.time() - t_start
+            rate = processed / elapsed if elapsed > 0 else 0
+            print(f"  [W{worker_id}] {processed}/{len(candidates)} "
+                  f"found={found} ({rate:.1f} img/s)", flush=True)
+
+    elapsed = time.time() - t_start
+    rate = processed / elapsed if elapsed > 0 else 0
+    print(f"  [W{worker_id}] 완료: {found}장 발견 "
+          f"({processed}장 처리, {rate:.1f} img/s, {elapsed:.0f}s)", flush=True)
+    return found
+
+
+def _hard_neg_worker(worker_id, candidates, v17_path, coco_path, cap_dir,
+                     img_dir, lbl_dir, device, batch_size, max_gpu_batch):
+    """hard_neg 워커: COCO 사람검출 + v17 오탐 = hard negative"""
+    from ultralytics import YOLO
+
+    coco_model = YOLO(coco_path)
+    coco_model.fuse()
+    if "cuda" in device:
+        coco_model.model.to(device)
+        coco_model.model.half()
+
+    v17_model = YOLO(v17_path)
+    v17_model.fuse()
+    if "cuda" in device:
+        v17_model.model.to(device)
+        v17_model.model.half()
+
+    COCO_PERSON_CLASS = 0
+    COCO_PERSON_CONF = 0.25
+    V17_MIN_CONF = 0.30
+
+    found, processed, skipped_person = 0, 0, 0
+    t_start = time.time()
+
+    for ci in range(0, len(candidates), batch_size):
+        chunk = candidates[ci:ci + batch_size]
+        paths = [os.path.join(cap_dir, cam, fname) for cam, fname in chunk]
+        frames = [cv2.imread(p) for p in paths]
+
+        valid = [(i, f) for i, f in enumerate(frames) if f is not None]
+        processed += len(chunk)
+
+        if not valid:
+            continue
+
+        valid_frames = [f for _, f in valid]
+
+        # Step 1: COCO person 배치 탐지
+        coco_dets = _batch_full_image_predict(
+            valid_frames, coco_model, conf=0.10,
+            device=device, max_gpu_batch=max_gpu_batch)
+
+        # Step 2: 사람 없는 프레임만 필터
+        no_person_indices = []
+        for vi, (ci_local, frame) in enumerate(valid):
+            has_person = any(cls_id == COCO_PERSON_CLASS and conf_val >= COCO_PERSON_CONF
+                           for cls_id, conf_val, *_ in coco_dets[vi])
+            if has_person:
+                skipped_person += 1
+            else:
+                no_person_indices.append(vi)
+
+        if not no_person_indices:
+            continue
+
+        # Step 3: v17 L2+full 배치 추론 (사람 없는 프레임만)
+        no_person_frames = [valid_frames[vi] for vi in no_person_indices]
+        v17_dets = _batch_predict_l2_full(
+            no_person_frames, v17_model, conf=0.15,
+            device=device, max_gpu_batch=max_gpu_batch)
+
+        for idx, vi in enumerate(no_person_indices):
+            ci_local = valid[vi][0]
+            cam, fname = chunk[ci_local]
+            dets = v17_dets[idx]
+            filtered_dets = [(c, s, x1, y1, x2, y2) for c, s, x1, y1, x2, y2 in dets
+                             if s >= V17_MIN_CONF]
+            if not filtered_dets:
+                continue
+
+            found += 1
+            shutil.copy2(os.path.join(cap_dir, cam, fname),
+                        os.path.join(img_dir, fname))
+            with open(os.path.join(lbl_dir, fname.replace(".jpg", ".txt")), "w") as f:
+                f.write("")
+
+        if processed % 200 < batch_size:
+            elapsed = time.time() - t_start
+            rate = processed / elapsed if elapsed > 0 else 0
+            print(f"  [W{worker_id}] {processed}/{len(candidates)} "
+                  f"neg={found} person_skip={skipped_person} ({rate:.1f} img/s)",
+                  flush=True)
+
+    elapsed = time.time() - t_start
+    rate = processed / elapsed if elapsed > 0 else 0
+    print(f"  [W{worker_id}] 완료: {found}장 ({processed}장, "
+          f"person_skip={skipped_person}, {rate:.1f} img/s, {elapsed:.0f}s)",
+          flush=True)
+    return found
+
+
+# ============================================================================
+#  멀티프로세스 코디네이터
+# ============================================================================
+
+def _run_workers_subprocess(worker_type, n_workers, candidates, args_dict):
+    """N개 서브프로세스로 병렬 처리 (CUDA 안전)"""
+    import subprocess
+    import threading
+    import json
+    import tempfile
+
+    # 후보 분할 (라운드 로빈)
+    shards = [candidates[i::n_workers] for i in range(n_workers)]
+    for i, shard in enumerate(shards):
+        print(f"  워커 {i}: {len(shard)}장 할당", flush=True)
+
+    # 각 워커의 후보를 임시 파일로 저장
+    shard_files = []
+    for i, shard in enumerate(shards):
+        tf = tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False)
+        json.dump(shard, tf)
+        tf.close()
+        shard_files.append(tf.name)
+
+    # 서브프로세스 실행
+    procs = []
+    for i in range(n_workers):
+        cmd = [sys.executable, "-u", __file__,
+               "--_worker", worker_type,
+               "--_worker-id", str(i),
+               "--_shard-file", shard_files[i]]
+        # 필요한 인자 전달
+        for key, val in args_dict.items():
+            cmd.extend([f"--{key}", str(val)])
+        p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                            bufsize=1, universal_newlines=True)
+        procs.append(p)
+
+    # 실시간 출력 수집
+    def _drain(proc):
+        for line in proc.stdout:
+            print(line.rstrip(), flush=True)
+
+    threads = []
+    for p in procs:
+        t = threading.Thread(target=_drain, args=(p,), daemon=True)
+        t.start()
+        threads.append(t)
+
+    for t in threads:
+        t.join()
+    for p in procs:
+        p.wait()
+
+    # 임시 파일 정리
+    for f in shard_files:
+        os.unlink(f)
+
+
 def run_helmet_off(args, base, model_path, cap_dir):
-    print("\n" + "=" * 60)
-    print("  MODE 1: helmet_off 추출 (L2+full, 주간 07-17시)")
-    print("=" * 60)
+    print("\n" + "=" * 60, flush=True)
+    print("  MODE 1: helmet_off 추출 (L2+full, 주간 07-17시)", flush=True)
+    print("=" * 60, flush=True)
 
     CLASS_NAMES = ["person_with_helmet", "person_without_helmet"]
     CAMERAS = ["cam1", "cam2"]
 
     OUT_DIR = os.path.join(base, "home/lay/hoban/datasets/helmet_off_v17")
     RESULT_DIR = os.path.join(OUT_DIR, "results")
-    os.makedirs(os.path.join(RESULT_DIR, "images"), exist_ok=True)
-    os.makedirs(os.path.join(RESULT_DIR, "labels"), exist_ok=True)
+    IMG_DIR = os.path.join(RESULT_DIR, "images")
+    LBL_DIR = os.path.join(RESULT_DIR, "labels")
+    os.makedirs(IMG_DIR, exist_ok=True)
+    os.makedirs(LBL_DIR, exist_ok=True)
 
     used = load_exclusion_set(base)
-    already_found = set(os.listdir(os.path.join(RESULT_DIR, "images")))
-    print(f"3k 제외: {len(used)}장, 이전 결과: {len(already_found)}장")
+    already_found = set(os.listdir(IMG_DIR))
+    print(f"3k 제외: {len(used)}장, 이전 결과: {len(already_found)}장", flush=True)
 
     candidates = collect_candidates(
         cap_dir, CAMERAS, used, already_found, args.interval,
         daytime_only=True, start_hour=args.start_hour, end_hour=args.end_hour)
-    print(f"스캔 대상: {len(candidates)}장")
+    print(f"스캔 대상: {len(candidates)}장", flush=True)
 
     if not candidates:
-        print("스캔할 이미지 없음")
-        return
+        print("스캔할 이미지 없음", flush=True)
+        return 0
 
-    from ultralytics import YOLO
-    print(f"v17 모델 로드 (FP16+fuse, device={args.device})")
-    yolo_model = YOLO(model_path)
-    yolo_model.fuse()
-    if "cuda" in args.device:
-        yolo_model.model.to(args.device)
-        yolo_model.model.half()
+    N = args.workers
+    BATCH = max(1, args.batch_size)
+    print(f"워커: {N}개, 배치: {BATCH}", flush=True)
 
-    BURST_WINDOW, BURST_THRESHOLD, BURST_SKIP = 100, 40, 200
-    new_found, processed = 0, 0
-    window_hits, window_start, skip_until = 0, 0, 0
     t_start = time.time()
 
-    for idx, (cam, fname) in enumerate(candidates):
-        if idx < skip_until:
-            continue
-
-        img_path = os.path.join(cap_dir, cam, fname)
-        processed += 1
-
-        # burst 윈도우
-        if processed - window_start >= BURST_WINDOW:
-            if window_hits >= BURST_THRESHOLD:
-                skip_until = idx + BURST_SKIP
-                print(f"  burst 감지 ({window_hits}개/100장) -> {BURST_SKIP}장 스킵")
-            window_hits = 0
-            window_start = processed
-
-        # L2+full 추론 (실서비스 동일)
-        frame = cv2.imread(img_path)
-        if frame is None:
-            continue
-        img_h, img_w = frame.shape[:2]
-        img_area = img_h * img_w
-
-        preds = predict_l2_full(frame, yolo_model, conf=0.15, device=args.device)
-
-        # per-class conf 필터
-        preds = [(c, s, x1, y1, x2, y2) for c, s, x1, y1, x2, y2 in preds
-                 if s >= (0.40 if c == 0 else 0.15)]
-
-        has_off = any(c == 1 for c, *_ in preds)
-        if not has_off:
-            continue
-
-        new_found += 1
-        window_hits += 1
-
-        # YOLO format 라벨
-        label_lines = []
-        for cls_id, conf, x1, y1, x2, y2 in preds:
-            cx = ((x1 + x2) / 2) / img_w
-            cy = ((y1 + y2) / 2) / img_h
-            w = (x2 - x1) / img_w
-            h = (y2 - y1) / img_h
-            label_lines.append(f"{cls_id} {cx:.6f} {cy:.6f} {w:.6f} {h:.6f}")
-
-        shutil.copy2(img_path, os.path.join(RESULT_DIR, "images", fname))
-        with open(os.path.join(RESULT_DIR, "labels", fname.replace(".jpg", ".txt")), "w") as f:
-            f.write("\n".join(label_lines) + "\n")
-
-        if processed % 100 == 0:
-            elapsed = time.time() - t_start
-            rate = processed / elapsed
-            total = len(already_found) + new_found
-            print(f"  [{processed}/{len(candidates)}] "
-                  f"신규: {new_found} | 누적: {total}장 "
-                  f"({rate:.1f} img/s, ETA: {(len(candidates)-processed)/rate/60:.1f}분)")
-            if total >= args.target_off:
-                print(f"  목표 달성! ({total}장)")
-                break
-
-        if len(already_found) + new_found >= args.target_off:
-            break
+    if N <= 1:
+        # 단일 프로세스
+        new_found = _helmet_off_worker(
+            0, candidates, model_path, cap_dir,
+            IMG_DIR, LBL_DIR, args.device, BATCH, args.max_gpu_batch)
+    else:
+        # 멀티프로세스
+        _run_workers_subprocess("helmet_off", N, candidates, {
+            "model-path": model_path,
+            "cap-dir": cap_dir,
+            "img-dir": IMG_DIR,
+            "lbl-dir": LBL_DIR,
+            "device": args.device,
+            "batch-size": BATCH,
+            "max-gpu-batch": args.max_gpu_batch,
+        })
+        new_found = len(os.listdir(IMG_DIR)) - len(already_found)
 
     elapsed = time.time() - t_start
     total = len(already_found) + new_found
-    print(f"\nhelmet_off 수집 완료: {total}장 (신규 {new_found}, {elapsed:.0f}s)")
+    print(f"\nhelmet_off 수집 완료: {total}장 (신규 {new_found}, {elapsed:.0f}s)", flush=True)
 
-    all_images = list(os.listdir(os.path.join(RESULT_DIR, "images")))
+    all_images = list(os.listdir(IMG_DIR))
     filtered = time_gap_filter(RESULT_DIR, all_images, args.min_gap, args.target_off)
-    print(f"3분 간격 필터 후: {len(filtered)}장")
+    print(f"3분 간격 필터 후: {len(filtered)}장", flush=True)
 
     package_cvat(OUT_DIR, filtered, CLASS_NAMES)
-    print(f"출력: {OUT_DIR}")
+    print(f"출력: {OUT_DIR}", flush=True)
     return new_found
 
 
-# ============================================================================
-#  Mode 2: hard negative 마이닝 (COCO + L2+full)
-# ============================================================================
 def run_hard_neg(args, base, model_path, cap_dir):
-    """COCO에서 사람 없음 + v17 L2+full에서 탐지 있음 = hard negative"""
-    print("\n" + "=" * 60)
-    print("  MODE 2: hard negative 마이닝 (COCO 검증 + L2+full, 주간 07-17시)")
-    print("=" * 60)
+    print("\n" + "=" * 60, flush=True)
+    print("  MODE 2: hard negative 마이닝 (COCO+L2+full, 주간 07-17시)", flush=True)
+    print("=" * 60, flush=True)
 
     CLASS_NAMES = ["person_with_helmet", "person_without_helmet"]
     CAMERAS = ["cam1", "cam2"]
 
     OUT_DIR = os.path.join(base, "home/lay/hoban/datasets/hard_neg_v17")
     RESULT_DIR = os.path.join(OUT_DIR, "results")
-    os.makedirs(os.path.join(RESULT_DIR, "images"), exist_ok=True)
-    os.makedirs(os.path.join(RESULT_DIR, "labels"), exist_ok=True)
+    IMG_DIR = os.path.join(RESULT_DIR, "images")
+    LBL_DIR = os.path.join(RESULT_DIR, "labels")
+    os.makedirs(IMG_DIR, exist_ok=True)
+    os.makedirs(LBL_DIR, exist_ok=True)
 
     used = load_exclusion_set(base)
-    already_found = set(os.listdir(os.path.join(RESULT_DIR, "images")))
-    print(f"3k 제외: {len(used)}장, 이전 결과: {len(already_found)}장")
+    already_found = set(os.listdir(IMG_DIR))
+    print(f"3k 제외: {len(used)}장, 이전 결과: {len(already_found)}장", flush=True)
 
     candidates = collect_candidates(
         cap_dir, CAMERAS, used, already_found, args.interval * 2,
         daytime_only=True, start_hour=args.start_hour, end_hour=args.end_hour)
-    print(f"스캔 대상: {len(candidates)}장")
+    print(f"스캔 대상: {len(candidates)}장", flush=True)
 
     if not candidates:
-        print("스캔할 이미지 없음")
-        return
+        print("스캔할 이미지 없음", flush=True)
+        return 0
 
-    from ultralytics import YOLO
-
-    # COCO person detector
     coco_model_path = os.path.join(base, "home/lay/hoban/yolo26m.pt")
-    print(f"COCO person detector 로드: {coco_model_path}")
-    coco_model = YOLO(coco_model_path)
-    coco_model.fuse()
-    if "cuda" in args.device:
-        coco_model.model.to(args.device)
-        coco_model.model.half()
+    N = min(args.workers, 2)  # hard_neg은 모델 2개 → 최대 2워커
+    BATCH = max(1, args.batch_size)
+    print(f"워커: {N}개, 배치: {BATCH}", flush=True)
 
-    # v17 모델 (L2+full 추론용)
-    print(f"v17 모델 로드 (FP16+fuse, device={args.device})")
-    v17_model = YOLO(model_path)
-    v17_model.fuse()
-    if "cuda" in args.device:
-        v17_model.model.to(args.device)
-        v17_model.model.half()
-
-    COCO_PERSON_CLASS = 0
-    COCO_PERSON_CONF = 0.25
-    V17_MIN_CONF = 0.30  # v17에서 이 conf 이상 탐지가 있으면 오탐 후보
-
-    new_found, processed, skipped_has_person = 0, 0, 0
     t_start = time.time()
 
-    for idx, (cam, fname) in enumerate(candidates):
-        img_path = os.path.join(cap_dir, cam, fname)
-        processed += 1
-
-        frame = cv2.imread(img_path)
-        if frame is None:
-            continue
-
-        # Step 1: COCO person detector로 사람 유무 확인 (full-image)
-        coco_dets = _full_image_predict(frame, coco_model, conf=0.10, device=args.device)
-        has_person = any(cls_id == COCO_PERSON_CLASS and conf >= COCO_PERSON_CONF
-                        for cls_id, conf, *_ in coco_dets)
-
-        if has_person:
-            skipped_has_person += 1
-            continue
-
-        # Step 2: COCO 사람 없음 → v17 L2+full 추론
-        v17_dets = predict_l2_full(frame, v17_model, conf=0.15, device=args.device)
-
-        # per-class conf 적용 후 탐지가 있으면 = 오탐
-        v17_filtered = [(c, s, x1, y1, x2, y2) for c, s, x1, y1, x2, y2 in v17_dets
-                        if s >= V17_MIN_CONF]
-
-        if not v17_filtered:
-            continue
-
-        # Hard negative!
-        new_found += 1
-        shutil.copy2(img_path, os.path.join(RESULT_DIR, "images", fname))
-        with open(os.path.join(RESULT_DIR, "labels", fname.replace(".jpg", ".txt")), "w") as f:
-            f.write("")
-
-        if processed % 100 == 0 or new_found % 10 == 0:
-            elapsed = time.time() - t_start
-            rate = processed / elapsed if elapsed > 0 else 0
-            total = len(already_found) + new_found
-            print(f"  [{processed}/{len(candidates)}] "
-                  f"hard_neg: {new_found} | COCO사람: {skipped_has_person} "
-                  f"({rate:.1f} img/s)")
-            if total >= args.target_neg:
-                print(f"  목표 달성! ({total}장)")
-                break
-
-        if len(already_found) + new_found >= args.target_neg:
-            break
+    if N <= 1:
+        new_found = _hard_neg_worker(
+            0, candidates, model_path, coco_model_path, cap_dir,
+            IMG_DIR, LBL_DIR, args.device, BATCH, args.max_gpu_batch)
+    else:
+        _run_workers_subprocess("hard_neg", N, candidates, {
+            "model-path": model_path,
+            "coco-path": coco_model_path,
+            "cap-dir": cap_dir,
+            "img-dir": IMG_DIR,
+            "lbl-dir": LBL_DIR,
+            "device": args.device,
+            "batch-size": BATCH,
+            "max-gpu-batch": args.max_gpu_batch,
+        })
+        new_found = len(os.listdir(IMG_DIR)) - len(already_found)
 
     elapsed = time.time() - t_start
     total = len(already_found) + new_found
-    print(f"\nhard negative 수집 완료: {total}장 (신규 {new_found}, {elapsed:.0f}s)")
-    print(f"  COCO 사람 탐지로 스킵: {skipped_has_person}장")
+    print(f"\nhard negative 수집 완료: {total}장 (신규 {new_found}, {elapsed:.0f}s)", flush=True)
 
-    all_images = list(os.listdir(os.path.join(RESULT_DIR, "images")))
+    all_images = list(os.listdir(IMG_DIR))
     filtered = time_gap_filter(RESULT_DIR, all_images, args.min_gap, args.target_neg)
-    print(f"3분 간격 필터 후: {len(filtered)}장")
+    print(f"3분 간격 필터 후: {len(filtered)}장", flush=True)
 
     package_cvat(OUT_DIR, filtered, CLASS_NAMES)
-    print(f"출력: {OUT_DIR}")
+    print(f"출력: {OUT_DIR}", flush=True)
     return new_found
 
 
@@ -590,7 +742,7 @@ def run_hard_neg(args, base, model_path, cap_dir):
 # ============================================================================
 def main():
     parser = argparse.ArgumentParser(
-        description="v17 데이터 수집 (v3 - 실서비스 L2+full 파이프라인)")
+        description="v17 데이터 수집 (v5 - 멀티프로세스 GPU 병렬)")
     parser.add_argument("--server", action="store_true")
     parser.add_argument("--mode", choices=["all", "helmet_off", "hard_neg"],
                         default="all")
@@ -603,8 +755,56 @@ def main():
     parser.add_argument("--clear", action="store_true",
                         help="이전 결과 삭제 후 재수집")
     parser.add_argument("--device", type=str, default=None)
+    parser.add_argument("--workers", type=int, default=0,
+                        help="병렬 워커 수 (0=자동: CUDA면 4, CPU면 1)")
+    parser.add_argument("--batch-size", type=int, default=4,
+                        help="워커당 이미지 배치 크기")
+    parser.add_argument("--max-gpu-batch", type=int, default=16,
+                        help="GPU 1회 forward 최대 타일 수")
+    parser.add_argument("--io-workers", type=int, default=4)
+    # 내부 서브프로세스용
+    parser.add_argument("--_worker", type=str, default=None,
+                        help=argparse.SUPPRESS)
+    parser.add_argument("--_worker-id", type=int, default=0,
+                        help=argparse.SUPPRESS)
+    parser.add_argument("--_shard-file", type=str, default=None,
+                        help=argparse.SUPPRESS)
+    parser.add_argument("--model-path", type=str, default=None,
+                        help=argparse.SUPPRESS)
+    parser.add_argument("--coco-path", type=str, default=None,
+                        help=argparse.SUPPRESS)
+    parser.add_argument("--cap-dir", type=str, default=None,
+                        help=argparse.SUPPRESS)
+    parser.add_argument("--img-dir", type=str, default=None,
+                        help=argparse.SUPPRESS)
+    parser.add_argument("--lbl-dir", type=str, default=None,
+                        help=argparse.SUPPRESS)
+
     args = parser.parse_args()
 
+    # ── 서브프로세스 워커 모드 ──
+    if args._worker:
+        import json
+        with open(args._shard_file) as f:
+            candidates = json.load(f)
+        # json은 list of list로 로드됨 → tuple로 변환
+        candidates = [(c[0], c[1]) for c in candidates]
+
+        if args._worker == "helmet_off":
+            _helmet_off_worker(
+                args._worker_id, candidates,
+                args.model_path, args.cap_dir,
+                args.img_dir, args.lbl_dir,
+                args.device, args.batch_size, args.max_gpu_batch)
+        elif args._worker == "hard_neg":
+            _hard_neg_worker(
+                args._worker_id, candidates,
+                args.model_path, args.coco_path, args.cap_dir,
+                args.img_dir, args.lbl_dir,
+                args.device, args.batch_size, args.max_gpu_batch)
+        return
+
+    # ── 코디네이터 모드 ──
     BASE = "/" if args.server else "Z:/"
     MODEL_PATH = os.path.join(BASE, "home/lay/hoban/hoban_go3k_v17/weights/best.pt")
     CAP_DIR = os.path.join(BASE, "home/lay/video_indoor/static/captures")
@@ -612,26 +812,30 @@ def main():
     if args.device is None:
         import torch
         args.device = "cuda:0" if torch.cuda.is_available() else "cpu"
-        print(f"Device: {args.device}")
+
+    if args.workers == 0:
+        args.workers = 4 if "cuda" in args.device else 1
+
+    print(f"Device: {args.device}", flush=True)
+    print(f"모델: {MODEL_PATH}", flush=True)
+    print(f"캡처: {CAP_DIR}", flush=True)
+    print(f"파이프라인: L2+full (실서비스 동일)", flush=True)
+    print(f"병렬: {args.workers}워커 × batch={args.batch_size}", flush=True)
+    print(f"주간 필터: {args.start_hour:02d}:00 ~ {args.end_hour:02d}:00", flush=True)
 
     if not os.path.exists(MODEL_PATH):
-        print(f"모델 없음: {MODEL_PATH}")
+        print(f"모델 없음: {MODEL_PATH}", flush=True)
         sys.exit(1)
     if not os.path.isdir(CAP_DIR):
-        print(f"캡처 디렉터리 없음: {CAP_DIR}")
+        print(f"캡처 디렉터리 없음: {CAP_DIR}", flush=True)
         sys.exit(1)
-
-    print(f"모델: {MODEL_PATH}")
-    print(f"캡처: {CAP_DIR}")
-    print(f"파이프라인: L2+full (실서비스 동일)")
-    print(f"주간 필터: {args.start_hour:02d}:00 ~ {args.end_hour:02d}:00")
 
     if args.clear:
         for mode_dir in ["helmet_off_v17", "hard_neg_v17"]:
             result_dir = os.path.join(BASE, f"home/lay/hoban/datasets/{mode_dir}/results")
             if os.path.isdir(result_dir):
                 shutil.rmtree(result_dir)
-                print(f"삭제: {result_dir}")
+                print(f"삭제: {result_dir}", flush=True)
 
     if args.mode in ("all", "helmet_off"):
         run_helmet_off(args, BASE, MODEL_PATH, CAP_DIR)
@@ -639,9 +843,9 @@ def main():
     if args.mode in ("all", "hard_neg"):
         run_hard_neg(args, BASE, MODEL_PATH, CAP_DIR)
 
-    print("\n" + "=" * 60)
-    print("  완료!")
-    print("=" * 60)
+    print("\n" + "=" * 60, flush=True)
+    print("  완료!", flush=True)
+    print("=" * 60, flush=True)
 
 
 if __name__ == "__main__":
