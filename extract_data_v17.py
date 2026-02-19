@@ -459,7 +459,7 @@ def _helmet_off_worker(worker_id, candidates, model_path, cap_dir,
 
 def _hard_neg_worker(worker_id, candidates, v17_path, coco_path, cap_dir,
                      img_dir, lbl_dir, device, batch_size, max_gpu_batch):
-    """hard_neg 워커: COCO 사람검출 + v17 오탐 = hard negative"""
+    """negative 워커: COCO L2+full로 사람 없는 배경 이미지 수집"""
     from ultralytics import YOLO
 
     coco_model = YOLO(coco_path)
@@ -468,15 +468,8 @@ def _hard_neg_worker(worker_id, candidates, v17_path, coco_path, cap_dir,
         coco_model.model.to(device)
         coco_model.model.half()
 
-    v17_model = YOLO(v17_path)
-    v17_model.fuse()
-    if "cuda" in device:
-        v17_model.model.to(device)
-        v17_model.model.half()
-
     COCO_PERSON_CLASS = 0
     COCO_PERSON_CONF = 0.25
-    V17_MIN_CONF = 0.30
 
     found, processed, skipped_person = 0, 0, 0
     t_start = time.time()
@@ -494,39 +487,20 @@ def _hard_neg_worker(worker_id, candidates, v17_path, coco_path, cap_dir,
 
         valid_frames = [f for _, f in valid]
 
-        # Step 1: COCO person 배치 탐지
-        coco_dets = _batch_full_image_predict(
+        # COCO L2+full 배치 탐지 (타일 분할로 작은 사람도 감지)
+        coco_dets = _batch_predict_l2_full(
             valid_frames, coco_model, conf=0.10,
             device=device, max_gpu_batch=max_gpu_batch)
 
-        # Step 2: 사람 없는 프레임만 필터
-        no_person_indices = []
+        # 사람 없는 프레임 저장
         for vi, (ci_local, frame) in enumerate(valid):
             has_person = any(cls_id == COCO_PERSON_CLASS and conf_val >= COCO_PERSON_CONF
                            for cls_id, conf_val, *_ in coco_dets[vi])
             if has_person:
                 skipped_person += 1
-            else:
-                no_person_indices.append(vi)
-
-        if not no_person_indices:
-            continue
-
-        # Step 3: v17 L2+full 배치 추론 (사람 없는 프레임만)
-        no_person_frames = [valid_frames[vi] for vi in no_person_indices]
-        v17_dets = _batch_predict_l2_full(
-            no_person_frames, v17_model, conf=0.15,
-            device=device, max_gpu_batch=max_gpu_batch)
-
-        for idx, vi in enumerate(no_person_indices):
-            ci_local = valid[vi][0]
-            cam, fname = chunk[ci_local]
-            dets = v17_dets[idx]
-            filtered_dets = [(c, s, x1, y1, x2, y2) for c, s, x1, y1, x2, y2 in dets
-                             if s >= V17_MIN_CONF]
-            if not filtered_dets:
                 continue
 
+            cam, fname = chunk[ci_local]
             found += 1
             shutil.copy2(os.path.join(cap_dir, cam, fname),
                         os.path.join(img_dir, fname))
@@ -672,9 +646,40 @@ def run_helmet_off(args, base, model_path, cap_dir):
     return new_found
 
 
+def _collect_balanced_candidates(cap_dir, cameras, used, already_found,
+                                  per_date_cam=30, start_hour=7, end_hour=17):
+    """날짜/카메라 균등 샘플링으로 후보 수집"""
+    import random
+    random.seed(42)
+
+    by_date_cam = defaultdict(list)
+    for cam in cameras:
+        cam_dir = os.path.join(cap_dir, cam)
+        if not os.path.isdir(cam_dir):
+            continue
+        for f in os.listdir(cam_dir):
+            if not f.endswith(".jpg") or f in used or f in already_found:
+                continue
+            if not is_daytime(f, start_hour, end_hour):
+                continue
+            parts = f.split("_")
+            if len(parts) >= 2:
+                date = parts[1][:8]
+                by_date_cam[(cam, date)].append(f)
+
+    candidates = []
+    for (cam, date), files in sorted(by_date_cam.items()):
+        sampled = random.sample(files, min(per_date_cam, len(files)))
+        candidates.extend([(cam, f) for f in sampled])
+        print(f"  {cam}/{date}: {len(files)}장 → {len(sampled)}장 샘플", flush=True)
+
+    print(f"총 후보: {len(candidates)}장 ({len(by_date_cam)}그룹)", flush=True)
+    return candidates
+
+
 def run_hard_neg(args, base, model_path, cap_dir):
     print("\n" + "=" * 60, flush=True)
-    print("  MODE 2: hard negative 마이닝 (COCO+L2+full, 주간 07-17시)", flush=True)
+    print("  MODE 2: 배경 negative 수집 (COCO L2+full, 주간 07-17시)", flush=True)
     print("=" * 60, flush=True)
 
     CLASS_NAMES = ["person_with_helmet", "person_without_helmet"]
@@ -691,17 +696,18 @@ def run_hard_neg(args, base, model_path, cap_dir):
     already_found = set(os.listdir(IMG_DIR))
     print(f"3k 제외: {len(used)}장, 이전 결과: {len(already_found)}장", flush=True)
 
-    candidates = collect_candidates(
-        cap_dir, CAMERAS, used, already_found, args.interval * 2,
-        daytime_only=True, start_hour=args.start_hour, end_hour=args.end_hour)
-    print(f"스캔 대상: {len(candidates)}장", flush=True)
+    # 날짜/카메라 균등 샘플링 (200장 목표 → 그룹당 30장 오버샘플)
+    per_group = max(30, (args.target_neg * 2) // 18)
+    candidates = _collect_balanced_candidates(
+        cap_dir, CAMERAS, used, already_found, per_group,
+        args.start_hour, args.end_hour)
 
     if not candidates:
         print("스캔할 이미지 없음", flush=True)
         return 0
 
     coco_model_path = os.path.join(base, "home/lay/hoban/yolo26m.pt")
-    N = min(args.workers, 2)  # hard_neg은 모델 2개 → 최대 2워커
+    N = args.workers  # COCO만 사용 → 워커 제한 없음
     BATCH = max(1, args.batch_size)
     print(f"워커: {N}개, 배치: {BATCH}", flush=True)
 
@@ -726,11 +732,12 @@ def run_hard_neg(args, base, model_path, cap_dir):
 
     elapsed = time.time() - t_start
     total = len(already_found) + new_found
-    print(f"\nhard negative 수집 완료: {total}장 (신규 {new_found}, {elapsed:.0f}s)", flush=True)
+    print(f"\nnegative 수집 완료: {total}장 (신규 {new_found}, {elapsed:.0f}s)", flush=True)
 
+    # 시간 간격 필터 + 타겟 수 제한
     all_images = list(os.listdir(IMG_DIR))
     filtered = time_gap_filter(RESULT_DIR, all_images, args.min_gap, args.target_neg)
-    print(f"3분 간격 필터 후: {len(filtered)}장", flush=True)
+    print(f"시간 간격 필터 후: {len(filtered)}장 (target={args.target_neg})", flush=True)
 
     package_cvat(OUT_DIR, filtered, CLASS_NAMES)
     print(f"출력: {OUT_DIR}", flush=True)
@@ -831,7 +838,12 @@ def main():
         sys.exit(1)
 
     if args.clear:
-        for mode_dir in ["helmet_off_v17", "hard_neg_v17"]:
+        clear_modes = []
+        if args.mode in ("all", "helmet_off"):
+            clear_modes.append("helmet_off_v17")
+        if args.mode in ("all", "hard_neg"):
+            clear_modes.append("hard_neg_v17")
+        for mode_dir in clear_modes:
             result_dir = os.path.join(BASE, f"home/lay/hoban/datasets/{mode_dir}/results")
             if os.path.isdir(result_dir):
                 shutil.rmtree(result_dir)
