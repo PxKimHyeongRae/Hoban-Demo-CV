@@ -14,7 +14,8 @@ YOLO v8/v26 기반 건설현장 안전 감지 시스템.
 
 ## Current Best Model
 
-- **v17**: SAHI F1=0.918, mAP50=0.958 (COCO pt + 1280px)
+- **v19**: SAHI F1=0.928, mAP50=0.960 (v17 ft + helmet_off + neg)
+- **v17 (배포중)**: SAHI F1=0.918, mAP50=0.958 (COCO pt + 1280px)
 - 가중치: `hoban_go3k_v17/weights/best.pt`
 - 후처리: cross_nms(IoU=0.3) → min_area(5e-5) → gate(conf=0.20, r=30) → per_class(ON≥0.40, OFF≥0.15)
 
@@ -134,8 +135,10 @@ BBOX_IOU_THRESHOLD = 0.3          # IoU 트래커 임계값
 | v9 | - | 4-class, mAP50=0.940, overfitting collapse | Feb 8 |
 | v13 | - | 2-class curriculum learning, mAP50=0.945 | Feb 13 |
 | v16 | 0.885 | Clean 3k dataset, CCTV only | Feb 17 |
-| v17 | **0.918** | COCO pt + 1280px (+3.4%p) | Feb 18 |
-| v18 | TBD | v17 fine-tune + helmet_off | Feb 18 |
+| v17 | 0.918 | COCO pt + 1280px (+3.4%p) | Feb 18 |
+| v19 | **0.928** | v17 ft + helmet_off + neg 10,852 | Feb 19 |
+| v20 | 0.915 | v17 ft + 12,470 (데이터↑ but F1↓) | Feb 20 |
+| v21-l | TBD | yolo26l COCO pt (26.3M params) | Feb 20 |
 
 ## Critical Learnings
 
@@ -146,26 +149,31 @@ BBOX_IOU_THRESHOLD = 0.3          # IoU 트래커 임계값
 5. **앙상블 효과 없음**: v17 단독이 모든 조합보다 동등 이상
 6. **COCO pretraining**: domain-specific보다 COCO base가 +2%p 우수
 7. **bbox area**: 640px에서 면적 <0.5%는 탐지 불가
+8. **오류 94% tiny**: FP/FN 모두 <0.1% 면적 (~30px) 소형 객체에 집중
+9. **후처리 천장**: min_area/conf/SAHI타일 sweep 모두 F1=0.927 이상 불가
+10. **데이터↑ ≠ 성능↑**: v20(12,470)이 v19(10,852)보다 SAHI F1 하락
 
 ## Script Quick Reference
 
 ```bash
 # 학습
-python train_go3k_v17.py                    # v17 학습
-python train_go3k_v18.py --prepare          # v18 데이터셋 준비
-python train_go3k_v18.py                    # v18 학습
-python train_go3k_v18.py --resume           # 이어서 학습
+python train_go3k_v17.py                    # v17 학습 (yolo26m COCO pt)
+python train_go3k_v19.py --prepare          # v19 데이터셋 준비
+python train_go3k_v19.py                    # v19 학습 (v17 ft)
+python train_go3k_v21_l.py                  # v21-l 학습 (yolo26l COCO pt)
+python train_go3k_v21_l.py --resume         # 이어서 학습
 
 # 평가
-python eval_go3k_v18.py                     # v18 SAHI F1 평가
+python eval_go3k_v18.py                     # SAHI F1 평가
 python eval_go3k_v18.py --model path.pt     # 다른 모델 평가
 python eval_v17_postprocess.py              # 7-Phase 후처리 실험
-python eval_v17_ensemble.py                 # 앙상블 테스트
+
+# 분석
+python analysis_v19_errors.py               # FP/FN 오류 시각화
+python exp_min_area_sweep.py                # min_area + SAHI 타일 sweep
+python exp_tiny_gt_verify.py                # tiny GT 크롭 검증
 
 # 데이터 수집 (로컬)
-python extract_data_v17.py                  # helmet_off + hard neg 수집
+python extract_data_v17.py                  # helmet_off + neg 수집
 python extract_data_v17.py --mode helmet_off --server  # 서버에서 helmet_off만
-
-# 시각화
-python visualize_helmet_off_v17_opt.py      # 후처리 적용 시각화
 ```
