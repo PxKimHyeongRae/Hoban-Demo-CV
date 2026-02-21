@@ -138,7 +138,9 @@ BBOX_IOU_THRESHOLD = 0.3          # IoU 트래커 임계값
 | v17 | 0.918 | COCO pt + 1280px (+3.4%p) | Feb 18 |
 | v19 | **0.928** | v17 ft + helmet_off + neg 10,852 | Feb 19 |
 | v20 | 0.915 | v17 ft + 12,470 (데이터↑ but F1↓) | Feb 20 |
-| v21-l | TBD | yolo26l COCO pt (26.3M params) | Feb 20 |
+| v21-l | ~0.923* | yolo26l COCO pt — mAP 동일, 모델↑ 효과 없음 | Feb 20 |
+| v22 | 중단 | yolo26x COCO pt — batch=2 수렴 느림, 중단 (--resume 가능) | Feb 21 |
+| v23 | TBD | 현장 only 4,038장 (외부 8K 제외), COCO pt | Feb 22 |
 
 ## Critical Learnings
 
@@ -152,6 +154,9 @@ BBOX_IOU_THRESHOLD = 0.3          # IoU 트래커 임계값
 8. **오류 94% tiny**: FP/FN 모두 <0.1% 면적 (~30px) 소형 객체에 집중
 9. **후처리 천장**: min_area/conf/SAHI타일 sweep 모두 F1=0.927 이상 불가
 10. **데이터↑ ≠ 성능↑**: v20(12,470)이 v19(10,852)보다 SAHI F1 하락
+11. **모델↑ 효과 없음**: yolo26l(26.3M)/x(59M) 모두 yolo26m과 mAP 동일 (0.723 천장)
+12. **고해상도/TTA 역효과**: imgsz 1536/1920 및 TTA 모두 F1 하락
+13. **v16 데이터 76% 외부**: train의 S2-* 8,000장이 AIHub 외부 데이터
 
 ## Script Quick Reference
 
@@ -160,8 +165,10 @@ BBOX_IOU_THRESHOLD = 0.3          # IoU 트래커 임계값
 python train_go3k_v17.py                    # v17 학습 (yolo26m COCO pt)
 python train_go3k_v19.py --prepare          # v19 데이터셋 준비
 python train_go3k_v19.py                    # v19 학습 (v17 ft)
-python train_go3k_v21_l.py                  # v21-l 학습 (yolo26l COCO pt)
-python train_go3k_v21_l.py --resume         # 이어서 학습
+python train_go3k_v21_l.py --resume         # v21-l 재개 (yolo26l, 중단됨)
+python train_go3k_v22.py --resume           # v22 재개 (yolo26x, 중단됨)
+python train_go3k_v23_onsite.py --prepare   # v23 데이터셋 준비 (현장 only)
+python train_go3k_v23_onsite.py             # v23 학습 (현장 only, COCO pt)
 
 # 평가
 python eval_go3k_v18.py                     # SAHI F1 평가
