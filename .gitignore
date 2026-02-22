@@ -16,6 +16,7 @@ snapshot_detect/
 cvat_export/
 
 # 분석 결과 (이미지 포함, 대용량)
+analysis/
 analysis_*/
 pipeline_diff_viz/
 
