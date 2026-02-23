@@ -1,0 +1,561 @@
+<?xml version="1.0" encoding="utf-8"?>
+<annotations>
+  <version>1.1</version>
+  <meta>
+    <job>
+      <id>29</id>
+      <size>56</size>
+      <mode>annotation</mode>
+      <overlap>0</overlap>
+      <bugtracker></bugtracker>
+      <created>2026-02-23 04:04:00.671054+00:00</created>
+      <updated>2026-02-23 04:23:06.580812+00:00</updated>
+      <subset>default</subset>
+      <start_frame>0</start_frame>
+      <stop_frame>55</stop_frame>
+      <frame_filter></frame_filter>
+      <segments>
+        <segment>
+          <id>29</id>
+          <start>0</start>
+          <stop>55</stop>
+          <url>http://59.14.71.106:18080/api/jobs/29/dataset/export/api/jobs/29</url>
+        </segment>
+      </segments>
+      <owner>
+        <username>pluxity</username>
+        <email></email>
+      </owner>
+      <assignee></assignee>
+      <labels>
+        <label>
+          <name>person_with_helmet</name>
+          <color>#66ff66</color>
+          <type>any</type>
+          <attributes>
+          </attributes>
+        </label>
+        <label>
+          <name>person_without_helmet</name>
+          <color>#fa32b7</color>
+          <type>any</type>
+          <attributes>
+          </attributes>
+        </label>
+      </labels>
+    </job>
+    <dumped>2026-02-23 04:32:10.563421+00:00</dumped>
+  </meta>
+  <image id="0" name="cam1_20260210_134931_0060.jpg" width="1280" height="720">
+    <box label="person_with_helmet" source="file" occluded="0" xtl="219.17" ytl="449.17" xbr="260.88" ybr="490.01" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="730.06" ytl="151.52" xbr="741.67" ybr="162.96" z_order="0">
+    </box>
+  </image>
+  <image id="1" name="cam1_20260210_135631_0144.jpg" width="1280" height="720">
+    <box label="person_with_helmet" source="file" occluded="0" xtl="294.08" ytl="332.52" xbr="325.70" ybr="364.51" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="503.04" ytl="344.54" xbr="534.53" ybr="376.55" z_order="0">
+    </box>
+  </image>
+  <image id="2" name="cam1_20260211_061235_0866.jpg" width="1920" height="1080">
+    <box label="person_with_helmet" source="file" occluded="0" xtl="1630.65" ytl="557.12" xbr="1682.27" ybr="616.25" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="1734.23" ytl="248.26" xbr="1762.89" ybr="278.00" z_order="0">
+    </box>
+  </image>
+  <image id="3" name="cam1_20260211_061905_0944.jpg" width="1920" height="1080">
+    <box label="person_with_helmet" source="file" occluded="0" xtl="1186.63" ytl="87.15" xbr="1205.61" ybr="104.51" z_order="0">
+    </box>
+    <box label="person_without_helmet" source="file" occluded="0" xtl="1800.53" ytl="341.94" xbr="1832.41" ybr="375.19" z_order="0">
+    </box>
+  </image>
+  <image id="4" name="cam1_20260211_062005_0956.jpg" width="1920" height="1080">
+    <box label="person_with_helmet" source="file" occluded="0" xtl="1044.40" ytl="167.80" xbr="1070.51" ybr="194.95" z_order="0">
+    </box>
+    <box label="person_without_helmet" source="file" occluded="0" xtl="914.75" ytl="170.94" xbr="938.86" ybr="197.50" z_order="0">
+    </box>
+  </image>
+  <image id="5" name="cam1_20260211_062545_1024.jpg" width="1920" height="1080">
+    <box label="person_with_helmet" source="file" occluded="0" xtl="1559.86" ytl="271.65" xbr="1593.25" ybr="304.90" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="927.79" ytl="123.23" xbr="949.42" ybr="147.17" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="1143.24" ytl="180.92" xbr="1167.05" ybr="205.81" z_order="0">
+    </box>
+  </image>
+  <image id="6" name="cam1_20260211_062905_1064.jpg" width="1920" height="1080">
+    <box label="person_with_helmet" source="file" occluded="0" xtl="1123.82" ytl="102.92" xbr="1146.00" ybr="123.62" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="1044.76" ytl="118.44" xbr="1064.96" ybr="139.94" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="1743.10" ytl="241.39" xbr="1776.49" ybr="278.43" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="1742.39" ytl="215.21" xbr="1768.03" ybr="242.44" z_order="0">
+    </box>
+  </image>
+  <image id="7" name="cam1_20260211_063425_1128.jpg" width="1920" height="1080">
+    <box label="person_with_helmet" source="file" occluded="0" xtl="1735.18" ytl="225.86" xbr="1763.91" ybr="256.38" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="1837.46" ytl="156.79" xbr="1861.84" ybr="178.60" z_order="0">
+    </box>
+    <box label="person_without_helmet" source="manual" occluded="0" xtl="846.82" ytl="272.88" xbr="884.93" ybr="313.94" z_order="0">
+    </box>
+  </image>
+  <image id="8" name="cam1_20260211_063845_1180.jpg" width="1920" height="1080">
+    <box label="person_with_helmet" source="file" occluded="0" xtl="1471.16" ytl="279.79" xbr="1508.72" ybr="313.54" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="940.77" ytl="118.18" xbr="961.07" ybr="139.26" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="1295.63" ytl="278.36" xbr="1331.32" ybr="314.46" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="1392.37" ytl="324.67" xbr="1434.54" ybr="363.45" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="1555.21" ytl="319.09" xbr="1592.88" ybr="357.09" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="1596.46" ytl="309.23" xbr="1635.52" ybr="346.99" z_order="0">
+    </box>
+  </image>
+  <image id="9" name="cam1_20260211_071435_1610.jpg" width="1920" height="1080">
+    <box label="person_with_helmet" source="file" occluded="0" xtl="1329.96" ytl="241.24" xbr="1362.81" ybr="275.95" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="1426.68" ytl="266.83" xbr="1464.94" ybr="300.26" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="812.85" ytl="152.27" xbr="840.56" ybr="177.31" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="946.19" ytl="154.68" xbr="970.42" ybr="175.72" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="917.22" ytl="169.89" xbr="945.16" ybr="197.43" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="1638.33" ytl="285.62" xbr="1677.68" ybr="328.33" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="890.93" ytl="114.20" xbr="910.99" ybr="133.64" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="1067.10" ytl="176.88" xbr="1094.44" ybr="206.92" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="986.20" ytl="129.74" xbr="1005.64" ybr="150.60" z_order="0">
+    </box>
+  </image>
+  <image id="10" name="cam1_20260211_071855_1662.jpg" width="1920" height="1080">
+    <box label="person_with_helmet" source="file" occluded="0" xtl="1823.55" ytl="212.46" xbr="1859.74" ybr="248.50" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="900.22" ytl="54.81" xbr="916.15" ybr="72.36" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="1089.15" ytl="190.57" xbr="1112.16" ybr="214.73" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="959.47" ytl="112.08" xbr="979.19" ybr="132.58" z_order="0">
+    </box>
+  </image>
+  <image id="11" name="cam1_20260211_072735_1766.jpg" width="1920" height="1080">
+    <box label="person_with_helmet" source="file" occluded="0" xtl="974.08" ytl="153.06" xbr="1000.43" ybr="178.48" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="936.75" ytl="137.80" xbr="960.15" ybr="162.96" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="63.11" ytl="151.84" xbr="84.16" ybr="172.97" z_order="0">
+    </box>
+  </image>
+  <image id="12" name="cam1_20260211_080501_2215.jpg" width="1920" height="1080">
+    <box label="person_with_helmet" source="file" occluded="0" xtl="1093.25" ytl="54.86" xbr="1111.66" ybr="76.23" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="48.39" ytl="642.88" xbr="70.11" ybr="667.59" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="1128.65" ytl="49.29" xbr="1147.70" ybr="69.60" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="435.57" ytl="176.93" xbr="462.43" ybr="202.81" z_order="0">
+    </box>
+  </image>
+  <image id="13" name="cam1_20260211_134241_0438.jpg" width="1920" height="1080">
+    <box label="person_with_helmet" source="file" occluded="0" xtl="1833.79" ytl="352.64" xbr="1869.35" ybr="389.15" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="1798.90" ytl="369.90" xbr="1829.20" ybr="397.88" z_order="0">
+    </box>
+  </image>
+  <image id="14" name="cam1_20260211_140041_0654.jpg" width="1920" height="1080">
+    <box label="person_with_helmet" source="file" occluded="0" xtl="45.85" ytl="643.90" xbr="68.10" ybr="668.02" z_order="0">
+    </box>
+  </image>
+  <image id="15" name="cam1_20260213_113326_0146.jpg" width="1920" height="1080">
+    <box label="person_with_helmet" source="file" occluded="0" xtl="1201.96" ytl="184.52" xbr="1220.06" ybr="203.63" z_order="0">
+    </box>
+    <box label="person_without_helmet" source="file" occluded="0" xtl="1060.19" ytl="354.62" xbr="1083.60" ybr="380.71" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="1330.59" ytl="181.10" xbr="1349.46" ybr="200.25" z_order="0">
+    </box>
+    <box label="person_without_helmet" source="file" occluded="0" xtl="1130.73" ytl="340.43" xbr="1153.56" ybr="366.49" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="1179.47" ytl="280.71" xbr="1201.99" ybr="304.83" z_order="0">
+    </box>
+  </image>
+  <image id="16" name="cam2_20260211_164053_1191.jpg" width="1920" height="1080">
+    <box label="person_without_helmet" source="file" occluded="0" xtl="687.31" ytl="221.86" xbr="718.11" ybr="260.80" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="1032.60" ytl="115.88" xbr="1053.20" ybr="140.11" z_order="0">
+    </box>
+    <box label="person_without_helmet" source="file" occluded="0" xtl="888.15" ytl="109.10" xbr="909.81" ybr="128.60" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="788.00" ytl="104.68" xbr="803.51" ybr="122.11" z_order="0">
+    </box>
+    <box label="person_without_helmet" source="file" occluded="0" xtl="1387.00" ytl="254.07" xbr="1411.60" ybr="279.83" z_order="0">
+    </box>
+  </image>
+  <image id="17" name="cam2_20260211_164336_408_id11880_헬멧_미착용_4e7423.jpg" width="1920" height="1080">
+    <box label="person_with_helmet" source="file" occluded="0" xtl="974.73" ytl="133.58" xbr="998.98" ybr="164.67" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="956.56" ytl="113.00" xbr="989.77" ybr="150.99" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="802.67" ytl="107.58" xbr="819.54" ybr="127.16" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="957.69" ytl="113.00" xbr="984.76" ybr="134.75" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="1152.06" ytl="125.02" xbr="1183.06" ybr="158.02" z_order="0">
+    </box>
+  </image>
+  <image id="18" name="cam2_20260211_171208_1566.jpg" width="1920" height="1080">
+    <box label="person_with_helmet" source="file" occluded="0" xtl="1651.66" ytl="360.00" xbr="1679.86" ybr="377.43" z_order="0">
+    </box>
+    <box label="person_without_helmet" source="file" occluded="0" xtl="1661.88" ytl="281.14" xbr="1694.57" ybr="313.26" z_order="0">
+    </box>
+    <box label="person_without_helmet" source="file" occluded="0" xtl="1648.93" ytl="337.00" xbr="1684.83" ybr="375.20" z_order="0">
+    </box>
+  </image>
+  <image id="19" name="cam2_20260212_060152_10802.jpg" width="1920" height="1080">
+    <box label="person_with_helmet" source="file" occluded="0" xtl="664.23" ytl="133.44" xbr="687.19" ybr="156.65" z_order="0">
+    </box>
+  </image>
+  <image id="20" name="cam2_20260212_060412_10830.jpg" width="1920" height="1080">
+    <box label="person_without_helmet" source="file" occluded="0" xtl="1416.95" ytl="265.11" xbr="1459.43" ybr="305.17" z_order="0">
+    </box>
+  </image>
+  <image id="21" name="cam2_20260212_060422_10832.jpg" width="1920" height="1080">
+    <box label="person_without_helmet" source="file" occluded="0" xtl="798.45" ytl="121.74" xbr="828.16" ybr="151.03" z_order="0">
+    </box>
+  </image>
+  <image id="22" name="cam2_20260212_061812_10998.jpg" width="1920" height="1080">
+    <box label="person_without_helmet" source="file" occluded="0" xtl="1012.07" ytl="113.43" xbr="1033.70" ybr="135.88" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="921.13" ytl="120.82" xbr="944.33" ybr="142.71" z_order="0">
+    </box>
+  </image>
+  <image id="23" name="cam2_20260212_061912_11010.jpg" width="1920" height="1080">
+    <box label="person_without_helmet" source="file" occluded="0" xtl="1328.33" ytl="268.70" xbr="1358.66" ybr="302.19" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="980.54" ytl="131.98" xbr="1000.71" ybr="149.86" z_order="0">
+    </box>
+  </image>
+  <image id="24" name="cam2_20260212_062442_11076.jpg" width="1920" height="1080">
+    <box label="person_with_helmet" source="file" occluded="0" xtl="1020.15" ytl="158.58" xbr="1048.03" ybr="185.67" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="754.29" ytl="171.48" xbr="780.42" ybr="202.88" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="976.84" ytl="133.80" xbr="1001.32" ybr="156.86" z_order="0">
+    </box>
+  </image>
+  <image id="25" name="cam2_20260212_062552_11090.jpg" width="1920" height="1080">
+    <box label="person_with_helmet" source="file" occluded="0" xtl="676.39" ytl="102.57" xbr="692.52" ybr="117.48" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="959.36" ytl="108.34" xbr="984.31" ybr="136.98" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="1575.62" ytl="407.49" xbr="1616.12" ybr="447.82" z_order="0">
+    </box>
+  </image>
+  <image id="26" name="cam2_20260212_065913_11490.jpg" width="1920" height="1080">
+    <box label="person_with_helmet" source="file" occluded="0" xtl="1876.07" ytl="490.33" xbr="1920.00" ybr="540.64" z_order="0">
+    </box>
+  </image>
+  <image id="27" name="cam2_20260212_073043_11868.jpg" width="1920" height="1080">
+    <box label="person_with_helmet" source="file" occluded="0" xtl="852.31" ytl="110.93" xbr="869.30" ybr="127.43" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="1483.82" ytl="225.99" xbr="1520.87" ybr="263.41" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="1266.59" ytl="154.96" xbr="1296.90" ybr="181.82" z_order="0">
+    </box>
+  </image>
+  <image id="28" name="cam2_20260212_092504_13240.jpg" width="1920" height="1080">
+    <box label="person_with_helmet" source="file" occluded="0" xtl="1019.46" ytl="110.56" xbr="1038.96" ybr="133.20" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="828.16" ytl="108.63" xbr="844.61" ybr="126.41" z_order="0">
+    </box>
+  </image>
+  <image id="29" name="cam2_20260212_093454_13358.jpg" width="1920" height="1080">
+    <box label="person_with_helmet" source="file" occluded="0" xtl="1014.90" ytl="117.39" xbr="1038.24" ybr="143.41" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="955.68" ytl="112.77" xbr="976.09" ybr="134.99" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="452.51" ytl="139.38" xbr="468.62" ybr="155.55" z_order="0">
+    </box>
+  </image>
+  <image id="30" name="cam2_20260212_093824_13400.jpg" width="1920" height="1080">
+    <box label="person_with_helmet" source="file" occluded="0" xtl="1335.37" ytl="297.69" xbr="1379.39" ybr="349.62" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="1167.34" ytl="116.41" xbr="1194.42" ybr="146.55" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="1176.50" ytl="126.67" xbr="1199.41" ybr="154.61" z_order="0">
+    </box>
+  </image>
+  <image id="31" name="cam2_20260212_100549_13729.jpg" width="1920" height="1080">
+    <box label="person_with_helmet" source="file" occluded="0" xtl="1188.42" ytl="116.53" xbr="1215.37" ybr="148.83" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="1121.23" ytl="105.10" xbr="1145.53" ybr="130.32" z_order="0">
+    </box>
+  </image>
+  <image id="32" name="cam2_20260212_101644_13860.jpg" width="1920" height="1080">
+    <box label="person_with_helmet" source="file" occluded="0" xtl="328.13" ytl="395.79" xbr="373.15" ybr="444.66" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="1724.15" ytl="293.74" xbr="1755.63" ybr="323.73" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="1088.86" ytl="111.58" xbr="1111.79" ybr="137.07" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="1431.20" ytl="194.70" xbr="1461.14" ybr="227.79" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="1140.17" ytl="122.78" xbr="1165.53" ybr="149.45" z_order="0">
+    </box>
+  </image>
+  <image id="33" name="cam2_20260212_110029_14385.jpg" width="1920" height="1080">
+    <box label="person_with_helmet" source="file" occluded="0" xtl="983.02" ytl="100.44" xbr="1003.61" ybr="125.25" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="381.03" ytl="163.61" xbr="406.12" ybr="187.01" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="937.04" ytl="107.05" xbr="961.20" ybr="134.59" z_order="0">
+    </box>
+  </image>
+  <image id="34" name="cam2_20260212_110255_422_id80109_헬멧_미착용_4239fd.jpg" width="1920" height="1080">
+    <box label="person_with_helmet" source="file" occluded="0" xtl="967.51" ytl="102.03" xbr="987.29" ybr="127.27" z_order="0">
+    </box>
+    <box label="person_without_helmet" source="file" occluded="0" xtl="1597.66" ytl="243.51" xbr="1636.47" ybr="283.33" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="1326.00" ytl="167.00" xbr="1359.00" ybr="200.00" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="1018.83" ytl="104.36" xbr="1037.31" ybr="127.01" z_order="0">
+    </box>
+  </image>
+  <image id="35" name="cam2_20260212_111436_766_id81678_헬멧_착용_c734d6.jpg" width="1920" height="1080">
+    <box label="person_with_helmet" source="file" occluded="0" xtl="1336.61" ytl="220.67" xbr="1368.70" ybr="257.24" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="1396.78" ytl="203.65" xbr="1433.70" ybr="243.30" z_order="0">
+    </box>
+  </image>
+  <image id="36" name="cam2_20260212_111849_14605.jpg" width="1920" height="1080">
+    <box label="person_with_helmet" source="file" occluded="0" xtl="828.23" ytl="101.24" xbr="842.50" ybr="115.95" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="977.13" ytl="125.80" xbr="1005.69" ybr="158.08" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="791.28" ytl="112.17" xbr="808.94" ybr="130.01" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="867.01" ytl="126.52" xbr="888.68" ybr="149.52" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="767.53" ytl="115.57" xbr="790.33" ybr="141.43" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="941.78" ytl="111.31" xbr="966.03" ybr="137.40" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="976.17" ytl="100.07" xbr="994.56" ybr="122.71" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="718.38" ytl="119.27" xbr="739.05" ybr="142.42" z_order="0">
+    </box>
+  </image>
+  <image id="37" name="cam2_20260212_112934_14734.jpg" width="1920" height="1080">
+    <box label="person_with_helmet" source="file" occluded="0" xtl="1261.09" ytl="158.89" xbr="1292.08" ybr="193.43" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="1754.27" ytl="296.60" xbr="1793.57" ybr="327.88" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="1851.64" ytl="301.00" xbr="1889.91" ybr="329.61" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="877.26" ytl="103.59" xbr="894.84" ybr="125.47" z_order="0">
+    </box>
+    <box label="person_without_helmet" source="file" occluded="0" xtl="1840.15" ytl="320.85" xbr="1867.52" ybr="351.13" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="969.17" ytl="89.86" xbr="989.66" ybr="114.05" z_order="0">
+    </box>
+  </image>
+  <image id="38" name="cam2_20260212_113236_580_id84482_헬멧_미착용_1be4d2.jpg" width="1920" height="1080">
+    <box label="person_with_helmet" source="file" occluded="0" xtl="1894.98" ytl="642.01" xbr="1920.00" ybr="705.30" z_order="0">
+    </box>
+    <box label="person_without_helmet" source="file" occluded="0" xtl="1581.96" ytl="256.88" xbr="1611.42" ybr="289.35" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="1032.00" ytl="126.00" xbr="1057.00" ybr="150.00" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="1229.00" ytl="194.00" xbr="1256.00" ybr="217.00" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="1248.00" ytl="157.00" xbr="1276.00" ybr="180.00" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="413.00" ytl="152.00" xbr="430.00" ybr="168.00" z_order="0">
+    </box>
+    <box label="person_without_helmet" source="file" occluded="0" xtl="1793.11" ytl="338.45" xbr="1836.95" ybr="384.33" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="1375.79" ytl="305.43" xbr="1417.42" ybr="343.85" z_order="0">
+    </box>
+  </image>
+  <image id="39" name="cam2_20260212_114208_272_id86879_헬멧_미착용_e8bfc6.jpg" width="1920" height="1080">
+    <box label="person_with_helmet" source="file" occluded="0" xtl="973.18" ytl="105.77" xbr="997.09" ybr="129.99" z_order="0">
+    </box>
+  </image>
+  <image id="40" name="cam2_20260212_114715_14946.jpg" width="1920" height="1080">
+    <box label="person_with_helmet" source="file" occluded="0" xtl="1498.91" ytl="216.86" xbr="1529.31" ybr="243.37" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="459.59" ytl="151.12" xbr="475.89" ybr="168.23" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="1142.93" ytl="378.80" xbr="1181.21" ybr="422.23" z_order="0">
+    </box>
+  </image>
+  <image id="41" name="cam2_20260212_115845_15084.jpg" width="1920" height="1080">
+    <box label="person_with_helmet" source="file" occluded="0" xtl="741.53" ytl="143.64" xbr="764.23" ybr="169.75" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="1058.16" ytl="494.44" xbr="1118.60" ybr="562.12" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="1078.06" ytl="497.55" xbr="1118.22" ybr="539.55" z_order="0">
+    </box>
+  </image>
+  <image id="42" name="cam2_20260212_115935_15094.jpg" width="1920" height="1080">
+    <box label="person_with_helmet" source="file" occluded="0" xtl="1061.71" ytl="116.13" xbr="1080.55" ybr="133.35" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="1319.59" ytl="162.80" xbr="1354.11" ybr="202.93" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="1322.42" ytl="164.19" xbr="1351.42" ybr="187.97" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="1704.35" ytl="371.26" xbr="1741.67" ybr="403.00" z_order="0">
+    </box>
+  </image>
+  <image id="43" name="cam2_20260212_121120_15235.jpg" width="1920" height="1080">
+    <box label="person_with_helmet" source="file" occluded="0" xtl="1159.46" ytl="112.73" xbr="1186.51" ybr="142.94" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="1888.98" ytl="369.06" xbr="1919.73" ybr="413.77" z_order="0">
+    </box>
+  </image>
+  <image id="44" name="cam2_20260212_121745_15312.jpg" width="1920" height="1080">
+    <box label="person_with_helmet" source="file" occluded="0" xtl="1066.86" ytl="100.93" xbr="1090.22" ybr="126.36" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="1069.28" ytl="502.68" xbr="1127.44" ybr="564.73" z_order="0">
+    </box>
+  </image>
+  <image id="45" name="cam2_20260212_121915_467_id92001_헬멧_미착용_96f7d6.jpg" width="1920" height="1080">
+    <box label="person_with_helmet" source="file" occluded="0" xtl="1685.00" ytl="307.00" xbr="1727.00" ybr="347.00" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="1469.00" ytl="233.00" xbr="1506.00" ybr="258.00" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="1074.76" ytl="498.02" xbr="1131.64" ybr="557.28" z_order="0">
+    </box>
+  </image>
+  <image id="46" name="cam2_20260212_122350_15385.jpg" width="1920" height="1080">
+    <box label="person_with_helmet" source="file" occluded="0" xtl="966.33" ytl="111.49" xbr="986.88" ybr="134.83" z_order="0">
+    </box>
+    <box label="person_without_helmet" source="file" occluded="0" xtl="912.33" ytl="113.67" xbr="932.37" ybr="137.27" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="1001.08" ytl="119.07" xbr="1025.88" ybr="145.72" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="486.92" ytl="269.79" xbr="520.87" ybr="314.40" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="1111.99" ytl="125.44" xbr="1141.12" ybr="164.38" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="1268.15" ytl="159.24" xbr="1298.16" ybr="188.27" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="1889.40" ytl="373.47" xbr="1920.00" ybr="422.27" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="1643.06" ytl="267.90" xbr="1677.76" ybr="297.24" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="812.97" ytl="116.79" xbr="832.24" ybr="139.64" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="1193.38" ytl="132.16" xbr="1218.63" ybr="153.93" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="1114.08" ytl="125.98" xbr="1138.55" ybr="144.99" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="880.76" ytl="184.36" xbr="907.86" ybr="211.73" z_order="0">
+    </box>
+  </image>
+  <image id="47" name="cam2_20260212_122400_15387.jpg" width="1920" height="1080">
+    <box label="person_with_helmet" source="file" occluded="0" xtl="1078.44" ytl="95.41" xbr="1100.88" ybr="121.13" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="1008.40" ytl="112.67" xbr="1025.80" ybr="133.17" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="565.35" ytl="252.11" xbr="604.50" ybr="291.88" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="360.13" ytl="431.38" xbr="402.00" ybr="479.92" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="890.52" ytl="99.72" xbr="909.05" ybr="118.66" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="1112.58" ytl="114.21" xbr="1138.20" ybr="140.54" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="793.22" ytl="394.56" xbr="839.55" ybr="441.37" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="710.42" ytl="112.45" xbr="726.61" ybr="130.86" z_order="0">
+    </box>
+  </image>
+  <image id="48" name="cam2_20260212_122410_15389.jpg" width="1920" height="1080">
+    <box label="person_with_helmet" source="file" occluded="0" xtl="481.39" ytl="441.84" xbr="527.73" ybr="491.64" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="864.32" ytl="269.01" xbr="901.80" ybr="316.30" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="364.58" ytl="618.15" xbr="417.99" ybr="670.71" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="919.07" ytl="98.02" xbr="937.92" ybr="116.46" z_order="0">
+    </box>
+  </image>
+  <image id="49" name="cam2_20260212_122840_15443.jpg" width="1920" height="1080">
+    <box label="person_with_helmet" source="file" occluded="0" xtl="750.53" ytl="575.31" xbr="800.95" ybr="631.61" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="1053.78" ytl="105.97" xbr="1073.86" ybr="124.51" z_order="0">
+    </box>
+  </image>
+  <image id="50" name="cam2_20260212_160355_452_id2186_헬멧_미착용_ee59d2.jpg" width="1920" height="1080">
+    <box label="person_with_helmet" source="file" occluded="0" xtl="1709.00" ytl="948.00" xbr="1790.00" ybr="1036.00" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="997.77" ytl="350.60" xbr="1043.44" ybr="397.29" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="1278.00" ytl="65.00" xbr="1306.00" ybr="89.00" z_order="0">
+    </box>
+  </image>
+  <image id="51" name="cam2_20260212_162819_184_id5854_헬멧_미착용_094503.jpg" width="1920" height="1080">
+    <box label="person_with_helmet" source="file" occluded="0" xtl="1631.00" ytl="143.00" xbr="1665.00" ybr="175.00" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="1511.00" ytl="214.00" xbr="1543.00" ybr="244.00" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="1529.38" ytl="191.89" xbr="1554.62" ybr="213.25" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="1550.00" ytl="176.00" xbr="1579.00" ybr="209.00" z_order="0">
+    </box>
+  </image>
+  <image id="52" name="cam2_20260213_112830_0086.jpg" width="1920" height="1080">
+    <box label="person_with_helmet" source="file" occluded="0" xtl="1039.83" ytl="388.33" xbr="1100.76" ybr="450.27" z_order="0">
+    </box>
+    <box label="person_without_helmet" source="file" occluded="0" xtl="1460.90" ytl="172.15" xbr="1492.61" ybr="208.96" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="1164.95" ytl="0.75" xbr="1188.15" ybr="24.13" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="1073.14" ytl="1.75" xbr="1094.12" ybr="22.17" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="1280.68" ytl="108.15" xbr="1310.02" ybr="136.82" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="1289.49" ytl="26.22" xbr="1315.37" ybr="52.22" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="1626.78" ytl="308.16" xbr="1669.30" ybr="353.42" z_order="0">
+    </box>
+  </image>
+  <image id="53" name="cam2_20260213_113446_0161.jpg" width="1920" height="1080">
+    <box label="person_with_helmet" source="file" occluded="0" xtl="624.29" ytl="171.03" xbr="661.22" ybr="219.35" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="1077.25" ytl="39.87" xbr="1102.54" ybr="64.84" z_order="0">
+    </box>
+    <box label="person_without_helmet" source="file" occluded="0" xtl="866.82" ytl="178.00" xbr="895.36" ybr="211.71" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="924.20" ytl="1.65" xbr="938.96" ybr="17.28" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="577.38" ytl="29.74" xbr="603.33" ybr="57.60" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="643.31" ytl="35.46" xbr="663.74" ybr="56.86" z_order="0">
+    </box>
+  </image>
+  <image id="54" name="cam2_20260213_115652_0426.jpg" width="1920" height="1080">
+    <box label="person_without_helmet" source="file" occluded="0" xtl="1021.57" ytl="156.67" xbr="1046.60" ybr="187.70" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="943.40" ytl="70.53" xbr="966.70" ybr="94.03" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="1039.64" ytl="379.99" xbr="1098.68" ybr="439.73" z_order="0">
+    </box>
+    <box label="person_with_helmet" source="file" occluded="0" xtl="1012.71" ytl="56.89" xbr="1032.03" ybr="75.91" z_order="0">
+    </box>
+  </image>
+  <image id="55" name="cam2_20260213_161417_2056.jpg" width="1920" height="1080">
+    <box label="person_without_helmet" source="file" occluded="0" xtl="1541.56" ytl="141.71" xbr="1565.88" ybr="168.08" z_order="0">
+    </box>
+    <box label="person_without_helmet" source="file" occluded="0" xtl="1404.10" ytl="71.94" xbr="1432.29" ybr="108.60" z_order="0">
+    </box>
+  </image>
+</annotations>

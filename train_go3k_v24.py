@@ -59,7 +59,7 @@ def train(resume=False):
             # Training
             epochs=100,
             patience=20,
-            batch=4,
+            batch=5,
             imgsz=1280,
             device="0",
             seed=42,

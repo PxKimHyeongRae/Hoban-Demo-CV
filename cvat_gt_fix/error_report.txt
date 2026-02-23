@@ -1,0 +1,306 @@
+======================================================================
+  GT 오류 리포트 (CVAT 검수용)
+======================================================================
+
+
+--- cam1_20260210_134931_0060.jpg ---
+  기존 GT: 1개, 활성 GT: 0개
+  모델 예측: 2개, 미매칭: 1개
+  [미라벨링] person_with_helmet conf=0.38 area=0.00185
+
+--- cam1_20260210_135631_0144.jpg ---
+  기존 GT: 1개, 활성 GT: 1개
+  모델 예측: 2개, 미매칭: 1개
+  [미라벨링] person_with_helmet conf=0.60 area=0.00110
+
+--- cam1_20260211_061235_0866.jpg ---
+  기존 GT: 1개, 활성 GT: 1개
+  모델 예측: 2개, 미매칭: 1개
+  [미라벨링] person_with_helmet conf=0.75 area=0.00041
+
+--- cam1_20260211_061905_0944.jpg ---
+  기존 GT: 1개, 활성 GT: 0개
+  모델 예측: 1개, 미매칭: 1개
+  [미라벨링] person_without_helmet conf=0.57 area=0.00051
+
+--- cam1_20260211_062005_0956.jpg ---
+  기존 GT: 2개, 활성 GT: 2개
+  모델 예측: 2개, 미매칭: 0개
+  [클래스혼동] GT=person_without_helmet → Pred=person_with_helmet IoU=0.91
+
+--- cam1_20260211_062545_1024.jpg ---
+  기존 GT: 2개, 활성 GT: 2개
+  모델 예측: 3개, 미매칭: 1개
+  [미라벨링] person_with_helmet conf=0.58 area=0.00029
+
+--- cam1_20260211_062905_1064.jpg ---
+  기존 GT: 3개, 활성 GT: 3개
+  모델 예측: 5개, 미매칭: 1개
+  [미라벨링] person_with_helmet conf=0.72 area=0.00034
+
+--- cam1_20260211_063425_1128.jpg ---
+  기존 GT: 3개, 활성 GT: 3개
+  모델 예측: 2개, 미매칭: 0개
+  [FN] person_with_helmet area=0.00075
+
+--- cam1_20260211_063845_1180.jpg ---
+  기존 GT: 3개, 활성 GT: 3개
+  모델 예측: 6개, 미매칭: 3개
+  [미라벨링] person_with_helmet conf=0.85 area=0.00069
+  [미라벨링] person_with_helmet conf=0.78 area=0.00071
+  [미라벨링] person_with_helmet conf=0.70 area=0.00061
+
+--- cam1_20260211_071435_1610.jpg ---
+  기존 GT: 9개, 활성 GT: 7개
+  모델 예측: 8개, 미매칭: 0개
+  [FN] person_with_helmet area=0.00040
+
+--- cam1_20260211_071855_1662.jpg ---
+  기존 GT: 3개, 활성 GT: 1개
+  모델 예측: 5개, 미매칭: 1개
+  [미라벨링] person_with_helmet conf=0.86 area=0.00027
+
+--- cam1_20260211_072735_1766.jpg ---
+  기존 GT: 3개, 활성 GT: 3개
+  모델 예측: 3개, 미매칭: 0개
+  [FN] person_with_helmet area=0.00021
+
+--- cam1_20260211_080501_2215.jpg ---
+  기존 GT: 4개, 활성 GT: 2개
+  모델 예측: 3개, 미매칭: 0개
+  [FN] person_with_helmet area=0.00026
+
+--- cam1_20260211_134241_0438.jpg ---
+  기존 GT: 1개, 활성 GT: 1개
+  모델 예측: 2개, 미매칭: 1개
+  [미라벨링] person_with_helmet conf=0.91 area=0.00041
+
+--- cam1_20260211_140041_0654.jpg ---
+  기존 GT: 1개, 활성 GT: 1개
+  모델 예측: 0개, 미매칭: 0개
+  [FN] person_with_helmet area=0.00026
+
+--- cam1_20260213_113326_0146.jpg ---
+  기존 GT: 4개, 활성 GT: 2개
+  모델 예측: 5개, 미매칭: 1개
+  [미라벨링] person_with_helmet conf=0.71 area=0.00026
+
+--- cam2_20260211_164053_1191.jpg ---
+  기존 GT: 5개, 활성 GT: 4개
+  모델 예측: 5개, 미매칭: 0개
+  [클래스혼동] GT=person_with_helmet → Pred=person_without_helmet IoU=0.86
+
+--- cam2_20260211_164336_408_id11880_헬멧_미착용_4e7423.jpg ---
+  기존 GT: 4개, 활성 GT: 3개
+  모델 예측: 6개, 미매칭: 1개
+  [미라벨링] person_with_helmet conf=0.63 area=0.00028
+  [FN] person_with_helmet area=0.00061
+
+--- cam2_20260211_171208_1566.jpg ---
+  기존 GT: 1개, 활성 GT: 1개
+  모델 예측: 3개, 미매칭: 2개
+  [미라벨링] person_with_helmet conf=0.45 area=0.00024
+  [미라벨링] person_without_helmet conf=0.25 area=0.00051
+
+--- cam2_20260212_060152_10802.jpg ---
+  기존 GT: 1개, 활성 GT: 1개
+  모델 예측: 0개, 미매칭: 0개
+  [FN] person_with_helmet area=0.00026
+
+--- cam2_20260212_060412_10830.jpg ---
+  기존 GT: 1개, 활성 GT: 1개
+  모델 예측: 1개, 미매칭: 0개
+  [클래스혼동] GT=person_without_helmet → Pred=person_with_helmet IoU=0.93
+
+--- cam2_20260212_060422_10832.jpg ---
+  기존 GT: 1개, 활성 GT: 1개
+  모델 예측: 1개, 미매칭: 0개
+  [클래스혼동] GT=person_without_helmet → Pred=person_with_helmet IoU=0.68
+
+--- cam2_20260212_061812_10998.jpg ---
+  기존 GT: 1개, 활성 GT: 1개
+  모델 예측: 2개, 미매칭: 1개
+  [미라벨링] person_without_helmet conf=0.47 area=0.00023
+
+--- cam2_20260212_061912_11010.jpg ---
+  기존 GT: 1개, 활성 GT: 0개
+  모델 예측: 2개, 미매칭: 1개
+  [미라벨링] person_without_helmet conf=0.79 area=0.00049
+
+--- cam2_20260212_062442_11076.jpg ---
+  기존 GT: 2개, 활성 GT: 2개
+  모델 예측: 3개, 미매칭: 1개
+  [클래스혼동] GT=person_with_helmet → Pred=person_without_helmet IoU=0.62
+  [미라벨링] person_with_helmet conf=0.50 area=0.00027
+
+--- cam2_20260212_062552_11090.jpg ---
+  기존 GT: 3개, 활성 GT: 2개
+  모델 예측: 4개, 미매칭: 0개
+  [클래스혼동] GT=person_with_helmet → Pred=person_without_helmet IoU=0.69
+
+--- cam2_20260212_065913_11490.jpg ---
+  기존 GT: 1개, 활성 GT: 1개
+  모델 예측: 0개, 미매칭: 0개
+  [FN] person_with_helmet area=0.00107
+
+--- cam2_20260212_073043_11868.jpg ---
+  기존 GT: 2개, 활성 GT: 1개
+  모델 예측: 3개, 미매칭: 1개
+  [미라벨링] person_with_helmet conf=0.83 area=0.00067
+
+--- cam2_20260212_092504_13240.jpg ---
+  기존 GT: 1개, 활성 GT: 0개
+  모델 예측: 3개, 미매칭: 1개
+  [미라벨링] person_with_helmet conf=0.72 area=0.00021
+
+--- cam2_20260212_093454_13358.jpg ---
+  기존 GT: 2개, 활성 GT: 1개
+  모델 예측: 2개, 미매칭: 1개
+  [미라벨링] person_with_helmet conf=0.78 area=0.00022
+
+--- cam2_20260212_093824_13400.jpg ---
+  기존 GT: 2개, 활성 GT: 2개
+  모델 예측: 2개, 미매칭: 1개
+  [미라벨링] person_with_helmet conf=0.87 area=0.00039
+  [FN] person_with_helmet area=0.00031
+
+--- cam2_20260212_100549_13729.jpg ---
+  기존 GT: 1개, 활성 GT: 1개
+  모델 예측: 2개, 미매칭: 1개
+  [미라벨링] person_with_helmet conf=0.78 area=0.00042
+
+--- cam2_20260212_101644_13860.jpg ---
+  기존 GT: 3개, 활성 GT: 3개
+  모델 예측: 5개, 미매칭: 2개
+  [미라벨링] person_with_helmet conf=0.68 area=0.00046
+  [미라벨링] person_with_helmet conf=0.66 area=0.00028
+
+--- cam2_20260212_110029_14385.jpg ---
+  기존 GT: 2개, 활성 GT: 2개
+  모델 예측: 3개, 미매칭: 1개
+  [미라벨링] person_with_helmet conf=0.87 area=0.00025
+
+--- cam2_20260212_110255_422_id80109_헬멧_미착용_4239fd.jpg ---
+  기존 GT: 2개, 활성 GT: 2개
+  모델 예측: 5개, 미매칭: 2개
+  [미라벨링] person_with_helmet conf=0.88 area=0.00024
+  [미라벨링] person_with_helmet conf=0.62 area=0.00020
+
+--- cam2_20260212_111436_766_id81678_헬멧_착용_c734d6.jpg ---
+  기존 GT: 2개, 활성 GT: 2개
+  모델 예측: 2개, 미매칭: 0개
+  [클래스혼동] GT=person_with_helmet → Pred=person_without_helmet IoU=0.86
+
+--- cam2_20260212_111849_14605.jpg ---
+  기존 GT: 7개, 활성 GT: 5개
+  모델 예측: 8개, 미매칭: 1개
+  [미라벨링] person_with_helmet conf=0.60 area=0.00020
+
+--- cam2_20260212_112934_14734.jpg ---
+  기존 GT: 5개, 활성 GT: 4개
+  모델 예측: 8개, 미매칭: 1개
+  [미라벨링] person_without_helmet conf=0.15 area=0.00040
+
+--- cam2_20260212_113236_580_id84482_헬멧_미착용_1be4d2.jpg ---
+  기존 GT: 7개, 활성 GT: 6개
+  모델 예측: 10개, 미매칭: 1개
+  [미라벨링] person_with_helmet conf=0.90 area=0.00077
+
+--- cam2_20260212_114208_272_id86879_헬멧_미착용_e8bfc6.jpg ---
+  기존 GT: 0개, 활성 GT: 0개
+  모델 예측: 1개, 미매칭: 1개
+  [미라벨링] person_with_helmet conf=0.86 area=0.00028
+
+--- cam2_20260212_114715_14946.jpg ---
+  기존 GT: 3개, 활성 GT: 2개
+  모델 예측: 2개, 미매칭: 0개
+  [FN] person_with_helmet area=0.00080
+
+--- cam2_20260212_115845_15084.jpg ---
+  기존 GT: 2개, 활성 GT: 2개
+  모델 예측: 2개, 미매칭: 1개
+  [미라벨링] person_with_helmet conf=0.69 area=0.00197
+  [FN] person_with_helmet area=0.00081
+
+--- cam2_20260212_115935_15094.jpg ---
+  기존 GT: 3개, 활성 GT: 2개
+  모델 예측: 3개, 미매칭: 1개
+  [미라벨링] person_with_helmet conf=0.83 area=0.00033
+  [FN] person_with_helmet area=0.00067
+
+--- cam2_20260212_121120_15235.jpg ---
+  기존 GT: 1개, 활성 GT: 1개
+  모델 예측: 2개, 미매칭: 1개
+  [미라벨링] person_with_helmet conf=0.62 area=0.00066
+
+--- cam2_20260212_121745_15312.jpg ---
+  기존 GT: 1개, 활성 GT: 1개
+  모델 예측: 3개, 미매칭: 1개
+  [미라벨링] person_with_helmet conf=0.73 area=0.00174
+
+--- cam2_20260212_121915_467_id92001_헬멧_미착용_96f7d6.jpg ---
+  기존 GT: 2개, 활성 GT: 2개
+  모델 예측: 3개, 미매칭: 1개
+  [미라벨링] person_with_helmet conf=0.78 area=0.00163
+
+--- cam2_20260212_122350_15385.jpg ---
+  기존 GT: 10개, 활성 GT: 10개
+  모델 예측: 11개, 미매칭: 2개
+  [미라벨링] person_with_helmet conf=0.75 area=0.00022
+  [미라벨링] person_with_helmet conf=0.72 area=0.00036
+  [클래스혼동] GT=person_with_helmet → Pred=person_without_helmet IoU=0.90
+  [FN] person_with_helmet area=0.00055
+
+--- cam2_20260212_122400_15387.jpg ---
+  기존 GT: 7개, 활성 GT: 4개
+  모델 예측: 9개, 미매칭: 1개
+  [미라벨링] person_with_helmet conf=0.77 area=0.00105
+
+--- cam2_20260212_122410_15389.jpg ---
+  기존 GT: 3개, 활성 GT: 2개
+  모델 예측: 4개, 미매칭: 1개
+  [미라벨링] person_with_helmet conf=0.55 area=0.00135
+
+--- cam2_20260212_122840_15443.jpg ---
+  기존 GT: 1개, 활성 GT: 0개
+  모델 예측: 2개, 미매칭: 1개
+  [미라벨링] person_with_helmet conf=0.48 area=0.00137
+
+--- cam2_20260212_160355_452_id2186_헬멧_미착용_ee59d2.jpg ---
+  기존 GT: 2개, 활성 GT: 2개
+  모델 예측: 3개, 미매칭: 1개
+  [미라벨링] person_with_helmet conf=0.93 area=0.00103
+
+--- cam2_20260212_162819_184_id5854_헬멧_미착용_094503.jpg ---
+  기존 GT: 3개, 활성 GT: 3개
+  모델 예측: 3개, 미매칭: 1개
+  [미라벨링] person_with_helmet conf=0.59 area=0.00026
+  [FN] person_with_helmet area=0.00046
+
+--- cam2_20260213_112830_0086.jpg ---
+  기존 GT: 6개, 활성 GT: 6개
+  모델 예측: 7개, 미매칭: 1개
+  [미라벨링] person_with_helmet conf=0.61 area=0.00032
+
+--- cam2_20260213_113446_0161.jpg ---
+  기존 GT: 5개, 활성 GT: 4개
+  모델 예측: 6개, 미매칭: 1개
+  [미라벨링] person_with_helmet conf=0.75 area=0.00035
+
+--- cam2_20260213_115652_0426.jpg ---
+  기존 GT: 3개, 활성 GT: 2개
+  모델 예측: 4개, 미매칭: 1개
+  [미라벨링] person_with_helmet conf=0.79 area=0.00170
+
+--- cam2_20260213_161417_2056.jpg ---
+  기존 GT: 1개, 활성 GT: 1개
+  모델 예측: 2개, 미매칭: 1개
+  [미라벨링] person_without_helmet conf=0.53 area=0.00050
+
+======================================================================
+  요약
+======================================================================
+  오류 이미지: 56장
+  미라벨링 (FP→GT 추가 필요): 48개
+  클래스 혼동 (라벨 수정 필요): 8개
+  FN (모델 미탐지, GT 확인): 14개

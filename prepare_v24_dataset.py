@@ -32,10 +32,10 @@ VAL_LBL = os.path.join(OUT_DIR, "valid", "labels")
 # 소스
 V19_TRAIN_IMG = "/home/lay/hoban/datasets_go3k_v19/train/images"
 V19_TRAIN_LBL = "/home/lay/hoban/datasets_go3k_v19/train/labels"
-HELMET_21K_ON_IMG = "/data/aihub_data/helmet_21k/helmet_wearing/images"
-HELMET_21K_ON_LBL = "/data/aihub_data/helmet_21k/helmet_wearing/labels"
-HELMET_21K_OFF_IMG = "/data/aihub_data/helmet_21k/helmet_not_wearing/images"
-HELMET_21K_OFF_LBL = "/data/aihub_data/helmet_21k/helmet_not_wearing/labels"
+HELMET_60K_ON_IMG = "/data/aihub_data/helmet_60k/helmet_wearing/images"
+HELMET_60K_ON_LBL = "/data/aihub_data/helmet_60k/helmet_wearing/labels"
+HELMET_60K_OFF_IMG = "/data/aihub_data/helmet_60k/helmet_not_wearing/images"
+HELMET_60K_OFF_LBL = "/data/aihub_data/helmet_60k/helmet_not_wearing/labels"
 UNIFIED_TRAIN_IMG = "/data/unified_safety_all/train/images"
 UNIFIED_TRAIN_LBL = "/data/unified_safety_all/train/labels"
 UNIFIED_VAL_IMG = "/data/unified_safety_all/valid/images"
@@ -179,12 +179,12 @@ def parse_aihub_json(json_path):
 
 
 def phase2_aihub_helmet():
-    print(f"\n[Phase 2] AIHub helmet_21k 외부 ({AIHUB_HELMET_COUNT}장)...")
+    print(f"\n[Phase 2] AIHub helmet_60k 외부 ({AIHUB_HELMET_COUNT}장)...")
 
     # helmet_wearing (→ class 0) + helmet_not_wearing (→ class 1)
     sources = [
-        (HELMET_21K_ON_IMG, HELMET_21K_ON_LBL, "on"),
-        (HELMET_21K_OFF_IMG, HELMET_21K_OFF_LBL, "off"),
+        (HELMET_60K_ON_IMG, HELMET_60K_ON_LBL, "on"),
+        (HELMET_60K_OFF_IMG, HELMET_60K_OFF_LBL, "off"),
     ]
 
     on_files = []
@@ -205,10 +205,10 @@ def phase2_aihub_helmet():
             if not boxes:
                 continue
 
-            # bbox area 필터: 0.001 ~ 0.15 (CCTV 중소형)
+            # bbox area 필터: 0.001 ~ 0.25 (다양한 스케일 포함)
             areas = [w * h for _, _, _, w, h in boxes]
             max_area = max(areas)
-            if max_area > 0.15 or max_area < 0.001:
+            if max_area > 0.25 or max_area < 0.001:
                 continue
 
             entry = (fname, img_dir, json_path, boxes)
